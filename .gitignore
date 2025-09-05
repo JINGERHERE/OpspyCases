@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# IDE files
+.idea/
+.vscode/
+
+# Client files
+.SmartAnalyze-OpenSees.log
+.opstool.output
+_OPSTOOL_ODB
+.RAW_DATA
+.LEARNING
+
+# Client Repository
+script
+opstool
