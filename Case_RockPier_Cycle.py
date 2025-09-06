@@ -25,12 +25,11 @@ import rich
 import opstool.vis.plotly as opsplt
 import opstool.vis.pyvista as opsvis
 
-import script
 from script import UNIT
+from script import AnalysisTools as ATs
 from script.base import random_color
 
 from Part_Model_RockPierModel import RockPierModelTEST
-from Script_ModelAnalyze import AnalysisTools as ATs
 
 
 import multiprocessing as mulp
@@ -47,7 +46,7 @@ from rich.progress import Progress, BarColumn, TimeElapsedColumn
 
 "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
 # 试验原始数据
-test_data_path = './.TEST_DATA'
+test_data_path = './.RAW_DATA'
 data_file = '/SCB.xlsx'
 # data_file = '/SCB_EDB.xlsx'
 # 导入
@@ -69,7 +68,7 @@ def ANALYSIS_CASE(CASE: float):
         返回：-
     """
 
-    root_path = './ModelData'
+    root_path = './OutData'
     case_path = os.path.join(root_path, f'{CASE:.3e}')
     os.makedirs(case_path, exist_ok=True)
 
@@ -168,7 +167,7 @@ def ANALYSIS_CASE(CASE: float):
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 损伤判断
-    StrucDS = Model.determine_damage(odb_tag=CASE, info=params['info'])
+    StrucDS = Model.determine_damage(odb_tag=f'{CASE:.3e}', info=params['info'])
     StrucDS.to_excel(f'{case_path}/{ModelProps.Name}_damage.xlsx', index=False)
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
@@ -207,6 +206,7 @@ if __name__ == "__main__":
     # 截面列表
     CASE_LIST = [
         0.050 * UNIT.pa,
+        0.050e2 * UNIT.pa,
     ]
 
     # 是否启用并行计算

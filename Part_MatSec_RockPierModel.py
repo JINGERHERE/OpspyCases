@@ -42,6 +42,7 @@ class RockPierModelSection:
     MinMax材料会有刚度的问题
     """
 
+    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     @staticmethod
     def bent_cap_sec(
             filepath: str,
@@ -185,6 +186,7 @@ class RockPierModelSection:
 
         return PROPS
 
+    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     @staticmethod
     def pier_sec(
             filepath: str,

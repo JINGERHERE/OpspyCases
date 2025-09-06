@@ -33,12 +33,11 @@ from itertools import batched, product, pairwise
 
 from script.pre import NodeTools
 from script.base import random_color
-from script import UNIT, PVs
+from script import UNIT, PVs, ModelCreateTools
 
 from Part_MatSec_RockPierModel import RockPierModelSection
 
 from script.post import DamageStateTools
-from Script_ModelCreate import ModelCreateTools
 
 from typing import NamedTuple
 
@@ -68,7 +67,7 @@ class RockPierModelTEST:
         self.node_resp: xr.DataArray # 节点响应数据
         self.ele_resp: xr.DataArray # 单元响应数据
 
-
+    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def RockPier(
         self,
         modelPath: str,
@@ -96,7 +95,7 @@ class RockPierModelTEST:
         ops.wipe()
         ops.model('basic', '-ndm', 3, '-ndf', 6)
         # 实例化建模工具
-        CreateTools = ModelCreateTools()
+        MCTs = ModelCreateTools()
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 桥墩尺寸控制
@@ -177,7 +176,7 @@ class RockPierModelTEST:
             ops.node(edge_node_2, center_coord[0], center_coord[1] + lw_pier, center_coord[2])
             
             # 边缘节点弹性单元坐标转换
-            seg_link_Transf = CreateTools.auto_geomTransf(edge_node_1, center_node)
+            seg_link_Transf = MCTs.auto_geomTransf(edge_node_1, center_node)
             # 边缘节点单元连接
             if rigid:
                 ops.rigidLink('beam', center_node, edge_node_1)
@@ -250,7 +249,7 @@ class RockPierModelTEST:
                 seg_node_n,
                 ends=(True, True)
                 ) # 节段中心节点坐标
-            seg_center_node = CreateTools.node_create(node_start, seg_center_coord) # 创建节点中节点
+            seg_center_node = MCTs.node_create(node_start, seg_center_coord) # 创建节点中节点
             
             # 中心节点单元连接
             seg_center_node_links = []
@@ -258,7 +257,7 @@ class RockPierModelTEST:
                 seg_center_node_links.append((node_i, node_j))
 
             # 创建单元
-            seg_center_ele = CreateTools.ele_create(ele_start, seg_center_node_links, tag_np_pier)
+            seg_center_ele = MCTs.ele_create(ele_start, seg_center_node_links, tag_np_pier)
 
             "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
             # 节段边缘节点
@@ -328,13 +327,13 @@ class RockPierModelTEST:
             (0., PierW / 2., PierH + lh_bent_cap),
             (0., L / 2., PierH + lh_bent_cap),
             ]
-        bent_cap_node = CreateTools.node_create(2000, bent_cap_coord) # 创建盖梁节点
+        bent_cap_node = MCTs.node_create(2000, bent_cap_coord) # 创建盖梁节点
         # 盖梁单元连接
         bent_cap_node_links = []
         for node_i, node_j in pairwise(bent_cap_node):
             bent_cap_node_links.append((node_i, node_j))
         # 盖梁单元
-        bent_cap_ele = CreateTools.ele_create(2000, bent_cap_node_links, tag_np_beam)
+        bent_cap_ele = MCTs.ele_create(2000, bent_cap_node_links, tag_np_beam)
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 墩柱 底部 接触面 1
@@ -594,7 +593,7 @@ class RockPierModelTEST:
 
         return self.model_props
 
-
+    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def determine_damage(self, odb_tag: Union[str, int] ,info: bool):
 
         # 导入数据
@@ -615,6 +614,7 @@ class RockPierModelTEST:
         
         return StructuralDS
 
+    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def reasp_fiber_sec(self, odb_tag: Union[str, int], ele_tag: int, integ: int, step: int):
         # 导入数据
         ODB_ele_sec = opst.post.get_element_responses(odb_tag=odb_tag, ele_type="FiberSection")
@@ -665,6 +665,7 @@ class RockPierModelTEST:
 
         return fig
     
+    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def reasp_disp(self, odb_tag: Union[str, int]):
         # 导入数据
         ODB_node_disp_resp = opst.post.get_nodal_responses(odb_tag=odb_tag, resp_type='disp')
@@ -673,6 +674,7 @@ class RockPierModelTEST:
         
         return disp
     
+    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def reasp_PT_force(self, odb_tag: Union[str, int]):
         # 导入数据
         ODB_truss_resp = opst.post.get_element_responses(odb_tag=odb_tag, ele_type='Truss')
@@ -700,7 +702,7 @@ class RockPierModelTEST:
 """
 if __name__ == "__main__":
     
-    test_path = './TestPath'
+    test_path = './OutTest'
     os.makedirs(test_path, exist_ok=True)
     
     test_model = RockPierModelTEST()
