@@ -44,11 +44,11 @@ yield_disp, yield_load = PACs.CASE_MODEL(
 
 # 工况列表
 CASE_LIST = [
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP': yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.2,'CORE_AREA': 320 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP': yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': 0.2,'CORE_AREA': 320 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': True,},
     {
         'ROOT_PATH': root_file,
         'DISP':yield_disp, 'FORCE': yield_load,

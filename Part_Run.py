@@ -39,6 +39,7 @@ root_file = f'./OutData'
 CASE_LIST = [
     {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': True,},
 ]
+
 # 是否启用并行计算
 if len(CASE_LIST) >= 2:
     PARALLEL: bool = True

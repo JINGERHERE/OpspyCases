@@ -1220,7 +1220,6 @@ class RockPierModelTEST:
                 return [top_BRB_yield.index.min(), base_BRB_yield.index.min()]
 
 
-
 """
 # --------------------------------------------------
 # ========== < TEST > ==========
