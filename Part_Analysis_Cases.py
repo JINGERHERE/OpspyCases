@@ -58,189 +58,6 @@ test_data = pd.read_excel(
 test_data['m'] = pd.to_numeric(test_data['m'], errors='coerce')
 test_data['kN']  = pd.to_numeric(test_data['kN'],  errors='coerce')
 
-# "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-# def ANALYSIS_CASE(CASE: float):
-
-#     """
-#     工况函数：
-#         输入：截面， 对应的分析工况
-#         执行：输入截面 对应方向的 弯矩曲率分析
-#         返回：-
-#     """
-
-#     root_path = './OutData'
-#     case_path = os.path.join(root_path, case_file_name)
-#     os.makedirs(case_path, exist_ok=True)
-
-#     # 实例化模型
-#     Model = RockPierModelTEST()
-
-#     # 模型参数
-#     params = {
-#         'Ke': 1.,
-#         'info': False
-#     }
-
-#     # 创建模型
-#     # ModelProps = Model.RockPier(case_path, **params)
-#     ModelProps = Model.RockPierBRB(case_path, **params)
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 时间序列
-#     ts = 1
-#     ops.timeSeries("Linear", ts)
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 响应数据库
-#     opst.post.set_odb_path(case_path)
-#     ODB = opst.post.CreateODB(
-#         odb_tag=f"{CASE:.3e}",
-#         elastic_frame_sec_points=9,
-#         node_tags=None,
-#         frame_tags=None,
-#         fiber_ele_tags="ALL"
-#         )
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 重力荷载工况
-#     grav_pattern = 100
-#     ops.pattern("Plain", grav_pattern, ts)
-#     g = 9.80665 * (UNIT.m / UNIT.sec ** 2)
-#     opst.pre.create_gravity_load(direction='Z', factor=-g)  # 从整体模型的节点质量获取重力荷载
-#     # 重力分析
-#     ATs.GRAVITY(filepath=case_path, RESP_ODB=ODB)
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 控制节点
-#     ctrl_node = ModelProps.KeyNode['ctrl_node']
-#     # 单位控制荷载
-#     F = 1.
-#     # 控制荷载工况
-#     static_pattern = 200
-#     ops.pattern("Plain", static_pattern, ts)
-#     ops.load(ctrl_node, 0.0, F, 0.0, 0.0, 0.0, 0.0)  # 节点荷载
-
-#     # 位移路径
-#     disp_path = 0.12 * UNIT.m
-#     disp_path = np.array([
-#             0.,
-#             # 0.01, -0.01,
-#             # 0.02, -0.02,
-#             # 0.03, -0.03,
-#             # 0.04, -0.04,
-#             # 0.05, -0.05,
-#             # 0.06, -0.06,
-#             # 0.08, -0.08,
-#             # 0.10, -0.10,
-#             0.12, -0.12,
-#             0.
-#         ]) * UNIT.m
-
-#     # 静力分析
-#     disp, load = ATs.STATIC(
-#         filepath=case_path,
-#         pattern=static_pattern,
-#         ctrl_node=ctrl_node,
-#         protocol=disp_path,
-#         incr=0.002,
-#         direction=2,
-#         RESP_ODB=ODB
-#         )
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 保存数据库
-#     ODB.save_response(zlib=True)
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 损伤判断
-#     StrucDS = Model.determine_damage(odb_tag=case_file_name, info=params['info'])
-#     StrucDS.to_excel(f'{case_path}/{ModelProps.Name}_damage.xlsx', index=False)
-
-#     # "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # # 截面状态
-#     # fig = Model.reasp_fiber_sec(odb_tag=case_file_name, ele_tag=1101, integ=1, step=-1)
-#     # fig.savefig(f'{case_path}/fiber_sec_state.png', dpi=300, bbox_inches='tight')
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 接触面纤维截面
-#     fig = Model.show_fiber_sec(ele_tag=ModelProps.KeyEle['ENT_sec'])
-#     fig.savefig(f'{case_path}/ENT_sec.png', dpi=300, bbox_inches='tight')
-    
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 接触面节点竖向位移
-#     fig = Model.reasp_seg_node_disp(odb_tag=case_file_name)
-#     fig.savefig(f'{case_path}/pier_1_seg_disp_test.png', dpi=300, bbox_inches='tight')
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 预应力
-#     fig = Model.reasp_PT_force(odb_tag=case_file_name)
-#     fig.savefig(f'{case_path}/PT_bar_Axial_Force.png', dpi=300, bbox_inches='tight')
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 耗能钢筋
-#     fig = Model.reasp_ED_stress_strain(odb_tag=case_file_name)
-#     fig.savefig(f'{case_path}/ED_bar_Stress_Strain.png', dpi=300, bbox_inches='tight')
-    
-#     # 耗能钢筋屈服判断
-#     yield_step = Model.yield_ED(odb_tag=case_file_name)
-#     disp_yield = disp[yield_step - 10]
-#     load_yield = load[yield_step - 10]
-#     yield_df = pd.DataFrame({'yield_disp (m)': disp_yield, 'yield_force (kN)': load_yield}, index=[0])
-#     yield_df.to_csv(f'{case_path}/yield.txt', sep='\t', index=False, encoding='utf-8')
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # BRB
-#     fig = Model.reasp_BRB_stress_strain(odb_tag=case_file_name)
-#     fig.savefig(f'{case_path}/BRB_stress_strain.png', dpi=300, bbox_inches='tight')
-    
-#     # BRB屈服判断
-#     yield_step_brb = Model.yield_BRB(odb_tag=case_file_name)
-#     disp_brb_yield = disp[yield_step_brb - 10]
-#     load_brb_yield = load[yield_step_brb - 10]
-#     brb_yield_df = pd.DataFrame({'yield_disp (m)': disp_brb_yield, 'yield_force (kN)': load_brb_yield}, index=[0])
-#     brb_yield_df.to_csv(f'{case_path}/BRB_yield.txt', sep='\t', index=False, encoding='utf-8')
-    
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 荷载-位移 曲线
-#     plt.close('all')
-#     plt.figure(figsize=(6, 4))
-#     plt.title(f'{ModelProps.Name} Displacement-Load Curve')
-    
-#     plt.plot(test_data['m']*UNIT.m, test_data['kN']*UNIT.kn, linewidth=0.8, label='TEST', zorder=2) # 实验数据
-#     plt.plot(disp, load, alpha=1, linewidth=0.8, label='FEM', zorder=3) # FEM
-    
-#     plt.scatter(disp_yield, load_yield, color = 'red', alpha=1, linewidth=0.8, label='yield', zorder=3) # 屈服点
-#     plt.scatter(disp_brb_yield, load_brb_yield, color = 'yellow', alpha=1, linewidth=0.8, label='yield', zorder=3) # BRB屈服点
-    
-#     plt.xlabel('Displacement (m)')
-#     plt.ylabel('Load (kN)')
-#     plt.xlim(-np.max(np.abs(disp)) * 1.2, np.max(np.abs(disp) * 1.2))
-#     plt.ylim(-np.max(np.abs(load)) * 1.2, np.max(np.abs(load)) * 1.2)
-#     plt.grid(linestyle='--', linewidth=0.5, zorder=1)
-#     plt.legend(loc='lower right', bbox_to_anchor=(1, 0))
-#     # plt.show()
-#     plt.savefig(f'{case_path}/disp_load.png', dpi=300, bbox_inches='tight')
-
-#     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-#     # 打印当前截面完成信息
-#     color = random_color()
-#     rich.print(f'[bold {color}] :tada: DONE: {ModelProps.Name} Analyze Successfully ! :tada: [/bold {color}]')
-#     rich.print(f'[bold {color}] Prepare the next >>>>> [/bold {color}]\n')
-    
-    
-    
-    
-#     out_data = pd.DataFrame({'x': disp, 'y': load})
-#     out_data.to_excel(f'{case_path}/disp_load.xlsx', index=False)
-#     print(f'屈服位移：{disp[yield_step-10]}')
-#     print(f'屈服强度：{load[yield_step-10]}')
-#     print(f'刚度：{load[yield_step-10] / disp[yield_step-10]}')
-    
-#     print(f'brb屈服位移：{disp[yield_step_brb-10]}')
-#     print(f'brb屈服强度：{load[yield_step_brb-10]}')
-#     print(f'brb刚度：{load[yield_step_brb-10] / disp[yield_step_brb-10]}')
-
-
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
 def CASE_MODEL(
     ROOT_PATH: str, # ./OutData
@@ -270,15 +87,66 @@ def CASE_MODEL(
         # 位移路径
         disp_path = np.array([
                 0.,
-                # 0.01, -0.01,
-                # 0.02, -0.02,
-                # 0.03, -0.03,
-                # 0.04, -0.04,
-                # 0.05, -0.05,
-                # 0.06, -0.06,
-                # 0.08, -0.08,
-                # 0.10, -0.10,
-                0.12, -0.12,
+                0.001, -0.001,
+                0.001, -0.001,
+                0.001, -0.001,
+                0.003, -0.003,
+                0.003, -0.003,
+                0.003, -0.003,
+                0.006, -0.006,
+                0.006, -0.006,
+                0.006, -0.006,
+                0.009, -0.009,
+                0.009, -0.009,
+                0.009, -0.009,
+                0.012, -0.012,
+                0.012, -0.012,
+                0.012, -0.012,
+                0.015, -0.015,
+                0.015, -0.015,
+                0.015, -0.015,
+                0.0225, -0.0225,
+                0.0225, -0.0225,
+                0.0225, -0.0225,
+                0.0300, -0.0300,
+                0.0300, -0.0300,
+                0.0300, -0.0300,
+                0.0375, -0.0375,
+                0.0375, -0.0375,
+                0.0375, -0.0375,
+                0.0450, -0.0450,
+                0.0450, -0.0450,
+                0.0450, -0.0450,
+                0.0525, -0.0525,
+                0.0525, -0.0525,
+                0.0525, -0.0525,
+                0.0600, -0.0600,
+                0.0600, -0.0600,
+                0.0600, -0.0600,
+                0.0675, -0.0675,
+                0.0675, -0.0675,
+                0.0675, -0.0675,
+                0.0750, -0.0750,
+                0.0750, -0.0750,
+                0.0750, -0.0750,
+                0.0825, -0.0825,
+                0.0825, -0.0825,
+                0.0825, -0.0825,
+                0.0900, -0.0900,
+                0.0900, -0.0900,
+                0.0900, -0.0900,
+                0.0975, -0.0975,
+                0.0975, -0.0975,
+                0.0975, -0.0975,
+                0.1050, -0.1050,
+                0.1050, -0.1050,
+                0.1050, -0.1050,
+                0.1125, -0.1125,
+                0.1125, -0.1125,
+                0.1125, -0.1125,
+                0.1200, -0.1200,
+                0.1200, -0.1200,
+                0.1200, -0.1200,
                 0.
             ]) * UNIT.m
         
@@ -290,8 +158,11 @@ def CASE_MODEL(
         # 位移路径
         disp_path = 0.12 * UNIT.m
     
+    # 创建工况路径
     case_path = os.path.join(ROOT_PATH, case_file_name)
     os.makedirs(case_path, exist_ok=True)
+    # 设置数据库文件夹
+    opst.post.set_odb_path(case_path)
 
     # 实例化模型
     Model = RockPierModelTEST()
@@ -319,7 +190,6 @@ def CASE_MODEL(
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 响应数据库
-    opst.post.set_odb_path(case_path)
     ODB = opst.post.CreateODB(
         odb_tag=case_file_name,
         elastic_frame_sec_points=9,
@@ -353,7 +223,7 @@ def CASE_MODEL(
         pattern=static_pattern,
         ctrl_node=ctrl_node,
         protocol=disp_path,
-        incr=0.002,
+        incr=0.0005,
         direction=2,
         RESP_ODB=ODB
         )
@@ -370,6 +240,10 @@ def CASE_MODEL(
     # 损伤判断
     StrucDS = Model.determine_damage(odb_tag=case_file_name, info=params['info'])
     StrucDS.to_excel(f'{case_path}/{ModelProps.Name}_damage.xlsx', index=False)
+    # disp_yield = disp[int(StrucDS.index.min()) - 10]
+    # load_yield = load[int(StrucDS.index.min()) - 10]
+    # yield_df = pd.DataFrame({'yield_disp (m)': disp_yield, 'yield_force (kN)': load_yield}, index=[0])
+    # yield_df.to_csv(f'{case_path}/Yield.txt', sep='\t', index=False, encoding='utf-8')
 
     # "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # # 截面状态
@@ -391,6 +265,7 @@ def CASE_MODEL(
     fig = Model.reasp_PT_force(odb_tag=case_file_name)
     fig.savefig(f'{case_path}/PT_bar_Axial_Force.png', dpi=300, bbox_inches='tight')
 
+
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 耗能钢筋
     fig = Model.reasp_ED_stress_strain(odb_tag=case_file_name)
@@ -402,6 +277,7 @@ def CASE_MODEL(
     load_yield = load[yield_step - 10]
     yield_df = pd.DataFrame({'yield_disp (m)': disp_yield, 'yield_force (kN)': load_yield}, index=[0])
     yield_df.to_csv(f'{case_path}/Yield.txt', sep='\t', index=False, encoding='utf-8')
+
 
     # "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # # BRB
@@ -538,34 +414,88 @@ def CASE_MODEL_BRB(
     # 静力分析 模式判断
     if CYCLE_MODE:
         # 工况文件夹命名
-        case_file_name = f'CYCLE_BRB_a={CORE_AREA:.3e}_c={CORE_RATIO}'
+        case_file_name = f'CYCLE_BRB_a={CORE_AREA:.3e}_c={CORE_RATIO:.2f}'
         # case_file_name = f'CYCLE_BRB_a={CORE_AREA:.3e}_c={CORE_RATIO}_Ke={Ke:.3e}' 
         
         # 位移路径
         disp_path = np.array([
                 0.,
-                # 0.01, -0.01,
-                # 0.02, -0.02,
-                # 0.03, -0.03,
-                # 0.04, -0.04,
-                # 0.05, -0.05,
-                # 0.06, -0.06,
-                # 0.08, -0.08,
-                # 0.10, -0.10,
-                0.12, -0.12,
+                0.001, -0.001,
+                0.001, -0.001,
+                0.001, -0.001,
+                0.003, -0.003,
+                0.003, -0.003,
+                0.003, -0.003,
+                0.006, -0.006,
+                0.006, -0.006,
+                0.006, -0.006,
+                0.009, -0.009,
+                0.009, -0.009,
+                0.009, -0.009,
+                0.012, -0.012,
+                0.012, -0.012,
+                0.012, -0.012,
+                0.015, -0.015,
+                0.015, -0.015,
+                0.015, -0.015,
+                0.0225, -0.0225,
+                0.0225, -0.0225,
+                0.0225, -0.0225,
+                0.0300, -0.0300,
+                0.0300, -0.0300,
+                0.0300, -0.0300,
+                0.0375, -0.0375,
+                0.0375, -0.0375,
+                0.0375, -0.0375,
+                0.0450, -0.0450,
+                0.0450, -0.0450,
+                0.0450, -0.0450,
+                0.0525, -0.0525,
+                0.0525, -0.0525,
+                0.0525, -0.0525,
+                0.0600, -0.0600,
+                0.0600, -0.0600,
+                0.0600, -0.0600,
+                0.0675, -0.0675,
+                0.0675, -0.0675,
+                0.0675, -0.0675,
+                0.0750, -0.0750,
+                0.0750, -0.0750,
+                0.0750, -0.0750,
+                0.0825, -0.0825,
+                0.0825, -0.0825,
+                0.0825, -0.0825,
+                0.0900, -0.0900,
+                0.0900, -0.0900,
+                0.0900, -0.0900,
+                0.0975, -0.0975,
+                0.0975, -0.0975,
+                0.0975, -0.0975,
+                0.1050, -0.1050,
+                0.1050, -0.1050,
+                0.1050, -0.1050,
+                0.1125, -0.1125,
+                0.1125, -0.1125,
+                0.1125, -0.1125,
+                0.1200, -0.1200,
+                0.1200, -0.1200,
+                0.1200, -0.1200,
                 0.
             ]) * UNIT.m
         
     else:
         # 工况文件夹命名
-        case_file_name = f'PUSH_BRB_a={CORE_AREA:.3e}_c={CORE_RATIO}'
+        case_file_name = f'PUSH_BRB_a={CORE_AREA:.3e}_c={CORE_RATIO:.2f}'
         # case_file_name = f'PUSH_BRB_a={CORE_AREA:.3e}_c={CORE_RATIO}_Ke={Ke:.3e}'
         
         # 位移路径
         disp_path = 0.12 * UNIT.m
     
+    # 创建工况文件夹
     case_path = os.path.join(ROOT_PATH, case_file_name)
     os.makedirs(case_path, exist_ok=True)
+    # 设置数据库文件夹
+    opst.post.set_odb_path(case_path)
 
     # 实例化模型
     Model = RockPierModelTEST()
@@ -593,7 +523,6 @@ def CASE_MODEL_BRB(
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 响应数据库
-    opst.post.set_odb_path(case_path)
     ODB = opst.post.CreateODB(
         odb_tag=case_file_name,
         elastic_frame_sec_points=9,
@@ -627,7 +556,7 @@ def CASE_MODEL_BRB(
         pattern=static_pattern,
         ctrl_node=ctrl_node,
         protocol=disp_path,
-        incr=0.002,
+        incr=0.0005,
         direction=2,
         RESP_ODB=ODB
         )
@@ -644,6 +573,10 @@ def CASE_MODEL_BRB(
     # 损伤判断
     StrucDS = Model.determine_damage(odb_tag=case_file_name, info=params['info'])
     StrucDS.to_excel(f'{case_path}/{ModelProps.Name}_damage.xlsx', index=False)
+    # disp_yield = disp[int(StrucDS.index.min()) - 10]
+    # load_yield = load[int(StrucDS.index.min()) - 10]
+    # yield_df = pd.DataFrame({'yield_disp (m)': disp_yield, 'yield_force (kN)': load_yield}, index=[0])
+    # yield_df.to_csv(f'{case_path}/Yield.txt', sep='\t', index=False, encoding='utf-8')
 
     # "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # # 截面状态
@@ -687,68 +620,92 @@ def CASE_MODEL_BRB(
     # 顶部 BRB
     top_disp_brb_yield = disp[yield_step_brb[0] - 10]
     top_load_brb_yield = load[yield_step_brb[0] - 10]
-    top_stiff_brb_yield = top_load_brb_yield / top_disp_brb_yield
+    # top_stiff_brb_yield = top_load_brb_yield / top_disp_brb_yield
     # 底部 BRB
     base_disp_brb_yield = disp[yield_step_brb[1] - 10]
     base_load_brb_yield = load[yield_step_brb[1] - 10]
-    base_stiff_brb_yield = base_load_brb_yield / base_disp_brb_yield
+    # base_stiff_brb_yield = base_load_brb_yield / base_disp_brb_yield
+    
+    # BRB 整体刚度贡献
+    if top_disp_brb_yield <= base_disp_brb_yield:
+        stiffness_contribution = top_load_brb_yield / top_disp_brb_yield
+    else:
+        stiffness_contribution = base_load_brb_yield / base_disp_brb_yield
     
     brb_yield_df = pd.DataFrame({
-        'yield_disp (m)': [top_disp_brb_yield, base_disp_brb_yield],
-        'yield_force (kN)': [top_load_brb_yield, base_load_brb_yield]
+        '屈服位移 (m)': [top_disp_brb_yield, base_disp_brb_yield],
+        '屈服时整体强度 (kN)': [top_load_brb_yield, base_load_brb_yield],
         })
     brb_yield_df.to_csv(f'{case_path}/BRB_Yield.txt', sep='\t', index=False, encoding='utf-8')
     
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # BRB对比 设计 - 模拟
-    df_test = pd.DataFrame({
+    df_compare = pd.DataFrame({
         'DESIGN': [
             DISP,
             FORCE,
+            
+            # ModelProps.OtherOptional[
+            #     'top_brb_yield_force'
+            #     ] + ModelProps.OtherOptional[
+            #         'base_brb_yield_force'
+            #         ],
+            ModelProps.OtherOptional[
+                'top_brb_yield_stiff'
+                ] + ModelProps.OtherOptional[
+                    'base_brb_yield_stiff'
+                    ],
+            ModelProps.OtherOptional['BRB_indicator_alpha'],
+            
             ModelProps.OtherOptional['top_brb_yield_disp'],
-            ModelProps.OtherOptional['top_brb_yield_force'],
-            ModelProps.OtherOptional['top_brb_yield_stiff'],
             ModelProps.OtherOptional['base_brb_yield_disp'],
-            ModelProps.OtherOptional['base_brb_yield_force'],
-            ModelProps.OtherOptional['base_brb_yield_stiff'],
-            ModelProps.OtherOptional['top_BRB_indicator_alpha'],
-            ModelProps.OtherOptional['base_BRB_indicator_alpha'],
             ModelProps.OtherOptional['top_BRB_indicator_miu'],
             ModelProps.OtherOptional['base_BRB_indicator_miu']
             ],
         'FEM': [
             disp_yield,
             load_yield,
+            
+            # top_load_brb_yield + base_load_brb_yield,
+            stiffness_contribution,
+            stiffness_contribution / (FORCE / DISP),
+            
             top_disp_brb_yield,
-            top_load_brb_yield,
-            top_stiff_brb_yield,
             base_disp_brb_yield,
-            base_load_brb_yield,
-            base_stiff_brb_yield,
-            top_stiff_brb_yield / (load_yield / disp_yield),
-            base_stiff_brb_yield / (load_yield / disp_yield),
             disp_yield / top_disp_brb_yield,
             disp_yield / base_disp_brb_yield,
             ],
         }, index=[
-            'yield_disp', # DESIGN 中为用于设计的值， # FEM 中为模拟的值， # ERROR的计算为BRB耦合后 屈服前置的幅度
-            'yield_load', # DESIGN 中为用于设计的值， # FEM 中为模拟的值， # ERROR的计算为BRB耦合后 屈服前置的幅度
-            'top_BRB_yield_disp',
-            'top_BRB_yield_force',
-            'top_BRB_yield_stiff',
-            'base_BRB_yield_disp',
-            'base_BRB_yield_force',
-            'base_BRB_yield_stiff',
-            'top_BRB_alpha',
-            'base_BRB_alpha',
-            'top_BRB_miu',
-            'base_BRB_miu',
+            '桥墩屈服位移',
+            '桥墩屈服荷载',
+            
+            # '整体_BRB_强度贡献',
+            '整体_BRB_刚度贡献',
+            '整体_BRB_刚度比',
+            
+            '顶部_BRB_屈服位移',
+            '底部_BRB_屈服位移',
+            '顶部_BRB_位移比',
+            '底部_BRB_位移比',
             ]
         )
     # 计算误差
-    df_test['ERROE(%)'] = (df_test['DESIGN'] / df_test['FEM'] - 1) * 100
+    df_compare['ERROR(%)'] = (df_compare['DESIGN'].abs() / df_compare['FEM'].abs() - 1) * 100
+    df_compare['ERROR_REMARK'] = [
+        '整体变化幅度',
+        '整体变化幅度',
+        
+        # '仅考虑所有BRB屈服前',
+        '仅考虑所有BRB屈服前',
+        '仅考虑所有BRB屈服前',
+        
+        '',
+        '',
+        '',
+        '',
+        ]
     # 导出数据
-    df_test.to_excel(f'{case_path}/Data_Compare.xlsx', index=True)
+    df_compare.to_excel(f'{case_path}/模拟验证设计.xlsx', index=True)
     
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 荷载-位移 曲线
@@ -803,6 +760,7 @@ if __name__ == "__main__":
     
     # 工况列表
     CASE_LIST = [
+        {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': False,},
         {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': True,},
     ]
 
