@@ -738,7 +738,7 @@ class RockPierModelTEST:
         ):
 
         """
-        该模型考虑了墩底滑移和混凝土耗能，对试验滞回曲线进行拟合
+        该模型考虑了墩底滑移和混凝土耗能，对试验滞回曲线进行拟合 // 可能不理想
             modelPath: 模型路径
             Ke: 模型收敛刚度拟合
             info: 是否打印信息
@@ -800,6 +800,20 @@ class RockPierModelTEST:
         lh_pier = PierProps.SecMashProps.centroid[1]
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        Ubig = 1.e6
+        Usmall = 1.e-6
+        # 接触面材料
+        matENT = 10
+        ops.uniaxialMaterial('ENT', matENT, 200 * UNIT.gpa) # 无受拉弹性材料
+        # 自由度 材料标签
+        K_free = 11
+        K_fix = 12
+        K_ke = 13
+        ops.uniaxialMaterial('Elastic', K_free, Usmall)  # 弹性材料 /释放变形
+        ops.uniaxialMaterial('Elastic', K_fix, Ubig)  # 弹性材料 /限制变形
+        ops.uniaxialMaterial('Elastic', K_ke, 1.5e3)  # 弹性材料 /滑移
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         def contact_surface(
             center_node: int,
             edge_node_1: int,
@@ -832,12 +846,12 @@ class RockPierModelTEST:
                 ops.element('elasticBeamColumn', edge_ele_1,
                             *(edge_node_1, center_node),
                             PierProps.CoverProps.Ec, PierProps.CoverProps.G,
-                            0.1, Ke, Ke, Ke, seg_link_Transf
+                            0.1, Ubig, Ubig, Ubig, seg_link_Transf
                             )
                 ops.element('elasticBeamColumn', edge_ele_2,
                             *(edge_node_2, center_node),
                             PierProps.CoverProps.Ec, PierProps.CoverProps.G,
-                            0.1, Ke, Ke, Ke, seg_link_Transf
+                            0.1, Ubig, Ubig, Ubig, seg_link_Transf
                             )
             
         class SegmentReturn(TypedDict):
@@ -942,22 +956,22 @@ class RockPierModelTEST:
         seg_1 = segment(
             node_start=1100, ele_start=1100,
             start_coord=(0., -PierW / 2., 0.), end_coord=(0., -PierW / 2., PierH / 2.),
-            rigid_top=False, rigid_base=False
+            rigid_top=True, rigid_base=True
             )
         seg_2 = segment(
             node_start=1200, ele_start=1200,
             start_coord=(0., PierW / 2., 0.), end_coord=(0., PierW / 2., PierH / 2.),
-            rigid_top=False, rigid_base=False
+            rigid_top=True, rigid_base=True
             )
         seg_3 = segment(
             node_start=1300, ele_start=1300,
             start_coord=(0., -PierW / 2., PierH / 2.), end_coord=(0., -PierW / 2., PierH),
-            rigid_top=False, rigid_base=False
+            rigid_top=True, rigid_base=True
             )
         seg_4 = segment(
             node_start=1400, ele_start=1400,
             start_coord=(0., PierW / 2., PierH / 2.), end_coord=(0., PierW / 2., PierH),
-            rigid_top=False, rigid_base=False
+            rigid_top=True, rigid_base=True
             )
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
@@ -1025,23 +1039,14 @@ class RockPierModelTEST:
             )
         
         # 盖梁接触面连接
-        ops.rigidLink('beam', bent_cap_node[1], contact_node_3 + 1)
-        ops.rigidLink('beam', bent_cap_node[-2], contact_node_4 + 1)
+        # ops.rigidLink('beam', bent_cap_node[1], contact_node_3 + 1)
+        # ops.rigidLink('beam', bent_cap_node[-2], contact_node_4 + 1)
+        ops.rigidLink('beam', contact_node_3 + 1, bent_cap_node[1])
+        ops.rigidLink('beam', contact_node_4 + 1, bent_cap_node[-2])
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        Ubig = 1.e6
-        Usmall = 1.e-6
-        # 接触面材料
-        matENT = 10
-        ops.uniaxialMaterial('ENT', matENT, 30 * UNIT.gpa) # 无受拉弹性材料
-        # 自由度 材料标签
-        K_free = 11
-        K_fix = 12
-        ops.uniaxialMaterial('Elastic', K_free, Usmall)  # 弹性材料 /释放变形
-        ops.uniaxialMaterial('Elastic', K_fix, Ubig)  # 弹性材料 /限制变形
-
         # 材料 对应 自由度
-        # dir_mats_silp = [matENT, Ke, Ke, K_free, K_free, K_free]  # 待定 // 将节段上下两端的横向延出的单元刚度设置为钢臂
+        dir_mats_silp = [matENT, K_ke, K_ke, K_free, K_free, K_free]  # 待定 // 将节段上下两端的横向延出的单元刚度设置为钢臂
         dir_mats = [matENT, K_fix, K_fix, K_free, K_free, K_free]  # 零长单元局部方向
         dirs = [1, 2, 3, 4, 5, 6]
 
@@ -1052,11 +1057,11 @@ class RockPierModelTEST:
         # pier 1 接触面单元
         contact_ele_start_1 = 4100
         ops.element('zeroLength', contact_ele_start_1 + 2, *[contact_node_1 + 2, seg_1['edge_node_1']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
         ops.element('zeroLength', contact_ele_start_1 + 1, *[contact_node_1 + 1, seg_1['edge_node_base']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
         ops.element('zeroLength', contact_ele_start_1 + 3, *[contact_node_1 + 3, seg_1['edge_node_2']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
 
         ops.element('zeroLength', contact_ele_start_1 + 5, *[seg_1['edge_node_3'], seg_3['edge_node_1']],
                     '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
@@ -1075,11 +1080,11 @@ class RockPierModelTEST:
         # pier 2 接触面单元
         contact_ele_start_2 = 4200
         ops.element('zeroLength', contact_ele_start_2 + 2, *[contact_node_2 + 2, seg_2['edge_node_1']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
         ops.element('zeroLength', contact_ele_start_2 + 1, *[contact_node_2 + 1, seg_2['edge_node_base']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
         ops.element('zeroLength', contact_ele_start_2 + 3, *[contact_node_2 + 3, seg_2['edge_node_2']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
 
         ops.element('zeroLength', contact_ele_start_2 + 5, *[seg_2['edge_node_3'], seg_4['edge_node_1']],
                     '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
@@ -1153,7 +1158,6 @@ class RockPierModelTEST:
         # 连接盖梁
         ops.rigidLink('beam', bent_cap_node[1], PT_fix_node + 3)
         ops.rigidLink('beam', bent_cap_node[-2], PT_fix_node + 4)
-
         
         # 张拉控制力
         axial_force = 300. * UNIT.kn
@@ -1286,6 +1290,18 @@ class RockPierModelTEST:
                 Ke=Ke,
                 info=info
                 )
+
+        # (
+        #     section_mat,
+        #     key_node,
+        #     key_ele,
+        #     location_damage,
+        #     other_optional
+        #     ) = self._set_pier_conc(
+        #         modelPath=modelPath,
+        #         Ke=Ke,
+        #         info=info
+        #         )
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 可视化输出模型

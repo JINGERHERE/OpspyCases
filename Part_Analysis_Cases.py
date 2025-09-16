@@ -265,7 +265,6 @@ def CASE_MODEL(
     fig = Model.reasp_PT_force(odb_tag=case_file_name)
     fig.savefig(f'{case_path}/PT_bar_Axial_Force.png', dpi=300, bbox_inches='tight')
 
-
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 耗能钢筋
     fig = Model.reasp_ED_stress_strain(odb_tag=case_file_name)

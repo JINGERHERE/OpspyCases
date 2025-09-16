@@ -2,6 +2,6 @@
 
 cd /d "%~dp0"
 
-.venv\Scripts\python.exe Case_RockPier_Cycle.py
+.venv\Scripts\python.exe Part_Run_BRB.py
 
 pause
