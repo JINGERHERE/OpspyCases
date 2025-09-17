@@ -42,201 +42,11 @@ yield_disp, yield_load = PACs.CASE_MODEL(
     CYCLE_MODE = False,
     )
 
-# 工况列表
-CASE_LIST = [
+# 长度比控制
+core_ratio = 0.5
 
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP': yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.06,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP': yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.07,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP': yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.08,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP': yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.09,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP': yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.10,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP': yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.15,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.20,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.25,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.30,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.40,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.50,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.60,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.70,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.80,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.90,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.93,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    
-    ]
-
-'''长度比 0.35 误差最小 /基于面积300'''
-
-# 工况列表
-CASE_LIST = [
-    
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP': yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 50 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP': yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 150 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 200 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 250 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 300 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 350 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 400 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 450 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 500 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 550 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 600 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 650 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 700 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 750 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 800 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 850 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 900 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 950 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    # {
-    #     'ROOT_PATH': root_file,
-    #     'DISP':yield_disp, 'FORCE': yield_load,
-    #     'CORE_RATIO': 0.35,'CORE_AREA': 1000 * (UNIT.mm**2),
-    #     'Ke':  1., 'CYCLE_MODE': True,},
-    ]
-
-'''面积 300 合适 /基于长度比0.35'''
+# puch & cycle 控制
+cycle_mode = False
 
 # 工况列表
 CASE_LIST = [
@@ -244,9 +54,103 @@ CASE_LIST = [
     {
         'ROOT_PATH': root_file,
         'DISP': yield_disp, 'FORCE': yield_load,
-        'CORE_RATIO': 0.35,'CORE_AREA': 300 * (UNIT.mm**2),
-        'Ke':  1., 'CYCLE_MODE': True,},
-
+        'CORE_RATIO': core_ratio,'CORE_AREA': 50 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP': yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 100 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP': yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 150 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 200 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 250 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 300 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 350 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 400 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 450 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 500 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 550 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 600 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 650 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 700 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 750 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 800 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 850 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 900 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 950 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
+    {
+        'ROOT_PATH': root_file,
+        'DISP':yield_disp, 'FORCE': yield_load,
+        'CORE_RATIO': core_ratio,'CORE_AREA': 1000 * (UNIT.mm**2),
+        'Ke':  1., 'CYCLE_MODE': cycle_mode,},
     ]
 
 # 是否启用并行计算
@@ -254,6 +158,22 @@ if len(CASE_LIST) >= 2:
     PARALLEL: bool = True
 else:
     PARALLEL: bool = False
+
+# 删除 nc 文件
+def remove_nc_files(root_dir):
+    """
+    删除指定目录及其子目录中所有.nc后缀的文件
+    :param root_dir: 根目录路径
+    """
+    for root, dirs, files in os.walk(root_dir):
+        for file in files:
+            if file.endswith('.nc'):
+                file_path = os.path.join(root, file)
+                try:
+                    os.remove(file_path)
+                    # print(f"已删除文件: {file_path}")
+                except OSError as e:
+                    print(f"删除文件 {file_path} 时出错: {e}")
 
 """
 # --------------------------------------------------
@@ -279,7 +199,10 @@ if __name__ == "__main__":
         '''正常计算：for循环'''
         for case in CASE_LIST:
             PACs.CASE_MODEL_BRB(**case)
-
+    
+    # 删除数据库文件
+    remove_nc_files(root_file)
+    
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 打印完成信息
     COLOR = random_color()
@@ -287,3 +210,4 @@ if __name__ == "__main__":
     rich.print(f'[bold {COLOR}] # ===== ===== ===== ===== << END >> ===== ===== ===== ===== # [/bold {COLOR}]\n')
 
     rich.print(f'总用时：{time.time() - START} s')
+

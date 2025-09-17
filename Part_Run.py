@@ -38,12 +38,8 @@ root_file = f'./OutData'
 # 工况列表
 CASE_LIST = [
     {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': False,},
-    {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': True,},
+    # {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': True,},
 ]
-'''
-并行有两个报错
-FileNotFoundError: [Errno 2] 系统找不到指定的文件。: '.opstool.output'
-'''
 
 # 是否启用并行计算
 if len(CASE_LIST) >= 2:

@@ -501,11 +501,11 @@ class RockPierModelTEST:
         equal_dof = [1, 2]
         ops.equalDOF(pier_1_top_seg_node[0], 1001, *equal_dof) # 盖梁 -- 1 柱 上节段
         ops.equalDOF(pier_1_base_seg_node[0], pier_1_top_seg_node[-1], *equal_dof) # 1 柱 上节段 -- 1 柱 下节段
-        ops.equalDOF(1002, pier_1_base_seg_node[-1], *equal_dof) # 1 柱 下节段 -- 墩底
+        # ops.equalDOF(1002, pier_1_base_seg_node[-1], *equal_dof) # 1 柱 下节段 -- 墩底
         
         ops.equalDOF(pier_2_top_seg_node[0], 2001, *equal_dof) # 盖梁 -- 2 柱 上节段
         ops.equalDOF(pier_2_base_seg_node[0], pier_2_top_seg_node[-1], *equal_dof) # 2 柱 上节段 -- 2 柱 下节段
-        ops.equalDOF(2002, pier_2_base_seg_node[-1], *equal_dof) # 2 柱 下节段 -- 墩底
+        # ops.equalDOF(2002, pier_2_base_seg_node[-1], *equal_dof) # 2 柱 下节段 -- 墩底
         
         # # 材料 对应 自由度
         # dir_mats = [K_free, K_ke, K_ke, K_free, K_free, K_free]  # 零长单元局部方向
@@ -708,7 +708,11 @@ class RockPierModelTEST:
                 'Pier_2_ED_bar_1': 42001,
                 'Pier_2_ED_bar_2': 42002,
                 # ENT 纤维截面
-                'ENT_sec': 11001,
+                'Pier_1_ENT_sec': 11003,
+                'Pier_2_ENT_sec': 12003,
+                # 节段底部 纤维截面
+                'pier_1_base_seg_ele': pier_1_base_seg_ele[-1],
+                'pier_2_base_seg_ele': pier_2_base_seg_ele[-1],
                 }
         LocationDamage=[
                 LOCATION_INFO(eleTag=pier_1_top_seg_ele[0], integ=1, location='pier_1_top_seg_top'),
@@ -729,524 +733,524 @@ class RockPierModelTEST:
         
         return SectionMat, KeyNode, KeyEle, LocationDamage, OtherOptional
 
-    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-    def _set_pier_conc(
-        self,
-        modelPath: str,
-        Ke: float,
-        info: bool
-        ):
+    # "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+    # def _set_pier_conc(
+    #     self,
+    #     modelPath: str,
+    #     Ke: float,
+    #     info: bool
+    #     ):
 
-        """
-        该模型考虑了墩底滑移和混凝土耗能，对试验滞回曲线进行拟合 // 可能不理想
-            modelPath: 模型路径
-            Ke: 模型收敛刚度拟合
-            info: 是否打印信息
-        """
+    #     """
+    #     该模型考虑了墩底滑移和混凝土耗能，对试验滞回曲线进行拟合 // 可能不理想
+    #         modelPath: 模型路径
+    #         Ke: 模型收敛刚度拟合
+    #         info: 是否打印信息
+    #     """
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 桥墩尺寸控制
-        L = 1750 * UNIT.mm # 盖梁长
-        PierH = 2400 * UNIT.mm # 墩柱高
-        Seg = 1200 * UNIT.mm # 节段长
-        PierW = 1200 * UNIT.mm # 墩柱中心间距
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 桥墩尺寸控制
+    #     L = 1750 * UNIT.mm # 盖梁长
+    #     PierH = 2400 * UNIT.mm # 墩柱高
+    #     Seg = 1200 * UNIT.mm # 节段长
+    #     PierW = 1200 * UNIT.mm # 墩柱中心间距
 
-        ED_l = 100 * UNIT.mm # 耗能钢筋管道长 /无粘结端 100 mm
+    #     ED_l = 100 * UNIT.mm # 耗能钢筋管道长 /无粘结端 100 mm
 
-        # 模型收敛刚度拟合
-        Ke = Ke
+    #     # 模型收敛刚度拟合
+    #     Ke = Ke
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 盖梁截面 盖梁材料 编号
-        bent_cap_section_tags = {
-            'section_tag': 100,  # 截面
-            'cover_tag': 1,  # 材料-保护层
-            'core_tag': 2,  # 材料-核心
-            'bar_tag': 3,  # 材料-钢筋
-            'bar_max_tag': 4,  # 材料-钢筋最大应变限制
-            'info': info
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 盖梁截面 盖梁材料 编号
+    #     bent_cap_section_tags = {
+    #         'section_tag': 100,  # 截面
+    #         'cover_tag': 1,  # 材料-保护层
+    #         'core_tag': 2,  # 材料-核心
+    #         'bar_tag': 3,  # 材料-钢筋
+    #         'bar_max_tag': 4,  # 材料-钢筋最大应变限制
+    #         'info': info
 
-        }
-        BentCapProps = RockPierModelSection.bent_cap_sec(modelPath, **bent_cap_section_tags)  # 创建盖梁纤维截面，并获取截面参数
+    #     }
+    #     BentCapProps = RockPierModelSection.bent_cap_sec(modelPath, **bent_cap_section_tags)  # 创建盖梁纤维截面，并获取截面参数
 
-        # 墩柱截面 墩柱材料 编号
-        pier_section_tags = {
-            'section_tag': 200,  # 截面
-            'cover_tag': 5,  # 材料-保护层
-            'core_tag': 6,  # 材料-核心
-            'bar_tag': 7,  # 材料-钢筋
-            'bar_max_tag': 8,  # 材料-钢筋最大应变限制
-            'info': info
+    #     # 墩柱截面 墩柱材料 编号
+    #     pier_section_tags = {
+    #         'section_tag': 200,  # 截面
+    #         'cover_tag': 5,  # 材料-保护层
+    #         'core_tag': 6,  # 材料-核心
+    #         'bar_tag': 7,  # 材料-钢筋
+    #         'bar_max_tag': 8,  # 材料-钢筋最大应变限制
+    #         'info': info
 
-        }
-        PierProps = RockPierModelSection.pier_sec(modelPath, **pier_section_tags)  # 创建墩柱纤维截面，并获取截面参数
+    #     }
+    #     PierProps = RockPierModelSection.pier_sec(modelPath, **pier_section_tags)  # 创建墩柱纤维截面，并获取截面参数
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 单元积分点
-        tag_np_beam = 1
-        tag_np_pier = 2
-        # ops.beamIntegration('Lobatto', tag_np_beam, bent_cap_section_tags['section_tag'], 5)
-        # ops.beamIntegration('Lobatto', tag_np_pier, pier_section_tags['section_tag'], 5)
-        ops.beamIntegration('Legendre', tag_np_beam, bent_cap_section_tags['section_tag'], 5)
-        ops.beamIntegration('Legendre', tag_np_pier, pier_section_tags['section_tag'], 5)
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 单元积分点
+    #     tag_np_beam = 1
+    #     tag_np_pier = 2
+    #     # ops.beamIntegration('Lobatto', tag_np_beam, bent_cap_section_tags['section_tag'], 5)
+    #     # ops.beamIntegration('Lobatto', tag_np_pier, pier_section_tags['section_tag'], 5)
+    #     ops.beamIntegration('Legendre', tag_np_beam, bent_cap_section_tags['section_tag'], 5)
+    #     ops.beamIntegration('Legendre', tag_np_pier, pier_section_tags['section_tag'], 5)
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 盖梁质心
-        lw_bent_cap = BentCapProps.SecMashProps.centroid[0]
-        lh_bent_cap = BentCapProps.SecMashProps.centroid[1]
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 盖梁质心
+    #     lw_bent_cap = BentCapProps.SecMashProps.centroid[0]
+    #     lh_bent_cap = BentCapProps.SecMashProps.centroid[1]
         
-        # 墩柱质心
-        lw_pier = PierProps.SecMashProps.centroid[0]
-        lh_pier = PierProps.SecMashProps.centroid[1]
+    #     # 墩柱质心
+    #     lw_pier = PierProps.SecMashProps.centroid[0]
+    #     lh_pier = PierProps.SecMashProps.centroid[1]
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        Ubig = 1.e6
-        Usmall = 1.e-6
-        # 接触面材料
-        matENT = 10
-        ops.uniaxialMaterial('ENT', matENT, 200 * UNIT.gpa) # 无受拉弹性材料
-        # 自由度 材料标签
-        K_free = 11
-        K_fix = 12
-        K_ke = 13
-        ops.uniaxialMaterial('Elastic', K_free, Usmall)  # 弹性材料 /释放变形
-        ops.uniaxialMaterial('Elastic', K_fix, Ubig)  # 弹性材料 /限制变形
-        ops.uniaxialMaterial('Elastic', K_ke, 1.5e3)  # 弹性材料 /滑移
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     Ubig = 1.e6
+    #     Usmall = 1.e-6
+    #     # 接触面材料
+    #     matENT = 10
+    #     ops.uniaxialMaterial('ENT', matENT, 200 * UNIT.gpa) # 无受拉弹性材料
+    #     # 自由度 材料标签
+    #     K_free = 11
+    #     K_fix = 12
+    #     K_ke = 13
+    #     ops.uniaxialMaterial('Elastic', K_free, Usmall)  # 弹性材料 /释放变形
+    #     ops.uniaxialMaterial('Elastic', K_fix, Ubig)  # 弹性材料 /限制变形
+    #     ops.uniaxialMaterial('Elastic', K_ke, 1.5e3)  # 弹性材料 /滑移
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        def contact_surface(
-            center_node: int,
-            edge_node_1: int,
-            edge_node_2: int,
-            edge_ele_1: int,
-            edge_ele_2: int,
-            rigid: bool = True
-            ):
-            """
-            # 三节点接触面
-            # 横线为Y，竖向为Z
-            # X方向不做拓展
-            输入：接触面中心节点编号，边缘节点编号，边缘单元编号
-            返回：None
-            """
-            # 获取中心节点坐标
-            center_coord = ops.nodeCoord(center_node)
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     def contact_surface(
+    #         center_node: int,
+    #         edge_node_1: int,
+    #         edge_node_2: int,
+    #         edge_ele_1: int,
+    #         edge_ele_2: int,
+    #         rigid: bool = True
+    #         ):
+    #         """
+    #         # 三节点接触面
+    #         # 横线为Y，竖向为Z
+    #         # X方向不做拓展
+    #         输入：接触面中心节点编号，边缘节点编号，边缘单元编号
+    #         返回：None
+    #         """
+    #         # 获取中心节点坐标
+    #         center_coord = ops.nodeCoord(center_node)
             
-            # 节段边缘节点，在Y上拓展接触面节点
-            ops.node(edge_node_1, center_coord[0], center_coord[1] - lw_pier, center_coord[2])
-            ops.node(edge_node_2, center_coord[0], center_coord[1] + lw_pier, center_coord[2])
+    #         # 节段边缘节点，在Y上拓展接触面节点
+    #         ops.node(edge_node_1, center_coord[0], center_coord[1] - lw_pier, center_coord[2])
+    #         ops.node(edge_node_2, center_coord[0], center_coord[1] + lw_pier, center_coord[2])
             
-            # 边缘节点弹性单元坐标转换
-            seg_link_Transf = self.MCTs.auto_geomTransf(edge_node_1, center_node)
-            # 边缘节点单元连接
-            if rigid:
-                ops.rigidLink('beam', center_node, edge_node_1)
-                ops.rigidLink('beam', center_node, edge_node_2)
-            else:
-                ops.element('elasticBeamColumn', edge_ele_1,
-                            *(edge_node_1, center_node),
-                            PierProps.CoverProps.Ec, PierProps.CoverProps.G,
-                            0.1, Ubig, Ubig, Ubig, seg_link_Transf
-                            )
-                ops.element('elasticBeamColumn', edge_ele_2,
-                            *(edge_node_2, center_node),
-                            PierProps.CoverProps.Ec, PierProps.CoverProps.G,
-                            0.1, Ubig, Ubig, Ubig, seg_link_Transf
-                            )
+    #         # 边缘节点弹性单元坐标转换
+    #         seg_link_Transf = self.MCTs.auto_geomTransf(edge_node_1, center_node)
+    #         # 边缘节点单元连接
+    #         if rigid:
+    #             ops.rigidLink('beam', center_node, edge_node_1)
+    #             ops.rigidLink('beam', center_node, edge_node_2)
+    #         else:
+    #             ops.element('elasticBeamColumn', edge_ele_1,
+    #                         *(edge_node_1, center_node),
+    #                         PierProps.CoverProps.Ec, PierProps.CoverProps.G,
+    #                         0.1, Ubig, Ubig, Ubig, seg_link_Transf
+    #                         )
+    #             ops.element('elasticBeamColumn', edge_ele_2,
+    #                         *(edge_node_2, center_node),
+    #                         PierProps.CoverProps.Ec, PierProps.CoverProps.G,
+    #                         0.1, Ubig, Ubig, Ubig, seg_link_Transf
+    #                         )
             
-        class SegmentReturn(TypedDict):
-            # 节段顶部接触面节点号
-            edge_node_1: int
-            edge_node_top: int
-            edge_node_2: int
-            # 节段底部接触面节点号
-            edge_node_3: int
-            edge_node_base: int
-            edge_node_4: int
-            # 两端主体节点单元
-            main_node: list
-            main_ele: list
+    #     class SegmentReturn(TypedDict):
+    #         # 节段顶部接触面节点号
+    #         edge_node_1: int
+    #         edge_node_top: int
+    #         edge_node_2: int
+    #         # 节段底部接触面节点号
+    #         edge_node_3: int
+    #         edge_node_base: int
+    #         edge_node_4: int
+    #         # 两端主体节点单元
+    #         main_node: list
+    #         main_ele: list
 
-        # 节段函数
-        def segment(
-            node_start: int,
-            ele_start: int,
-            start_coord: Union[tuple[float, float, float], list[float]],
-            end_coord: Union[tuple[float, float, float], list[float]],
-            rigid_top: bool = True,
-            rigid_base: bool = True
-        ) -> SegmentReturn:
-            """
-            横线为Y，竖向为Z
-            X方向不做拓展
-            # 节段建模方向由下到上
-                -       +
-                3   c   4
-                 *——*——*
-                    |
-                    *
-                    |
-                    *
-                    |
-                 *——*——*
-                1   c   2
-                -       +
-            输入：
-                节点编号组
-                单元编号组
-                起始点中心坐标
-                结束点中心坐标
-            返回：
-                接触面三个节点的编号
-                两端主体单元号
-            """
+    #     # 节段函数
+    #     def segment(
+    #         node_start: int,
+    #         ele_start: int,
+    #         start_coord: Union[tuple[float, float, float], list[float]],
+    #         end_coord: Union[tuple[float, float, float], list[float]],
+    #         rigid_top: bool = True,
+    #         rigid_base: bool = True
+    #     ) -> SegmentReturn:
+    #         """
+    #         横线为Y，竖向为Z
+    #         X方向不做拓展
+    #         # 节段建模方向由下到上
+    #             -       +
+    #             3   c   4
+    #              *——*——*
+    #                 |
+    #                 *
+    #                 |
+    #                 *
+    #                 |
+    #              *——*——*
+    #             1   c   2
+    #             -       +
+    #         输入：
+    #             节点编号组
+    #             单元编号组
+    #             起始点中心坐标
+    #             结束点中心坐标
+    #         返回：
+    #             接触面三个节点的编号
+    #             两端主体单元号
+    #         """
             
-            seg_node_n = 5 # 节段主体节点数（包含两侧）
+    #         seg_node_n = 5 # 节段主体节点数（包含两侧）
             
-            # 节段中心节点
-            seg_center_coord = NodeTools.distribute(
-                start_coord, end_coord,
-                seg_node_n,
-                ends=(True, True)
-                ) # 节段中心节点坐标
-            seg_center_node = self.MCTs.node_create(node_start, seg_center_coord) # 创建节点中节点
+    #         # 节段中心节点
+    #         seg_center_coord = NodeTools.distribute(
+    #             start_coord, end_coord,
+    #             seg_node_n,
+    #             ends=(True, True)
+    #             ) # 节段中心节点坐标
+    #         seg_center_node = self.MCTs.node_create(node_start, seg_center_coord) # 创建节点中节点
             
-            # 中心节点单元连接
-            seg_center_node_links = []
-            for node_i, node_j in pairwise(seg_center_node):
-                seg_center_node_links.append((node_i, node_j))
+    #         # 中心节点单元连接
+    #         seg_center_node_links = []
+    #         for node_i, node_j in pairwise(seg_center_node):
+    #             seg_center_node_links.append((node_i, node_j))
 
-            # 创建单元
-            seg_center_ele = self.MCTs.ele_create(ele_start, seg_center_node_links, tag_np_pier)
+    #         # 创建单元
+    #         seg_center_ele = self.MCTs.ele_create(ele_start, seg_center_node_links, tag_np_pier)
 
-            "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-            # 节段边缘节点
-            contact_surface(
-                center_node=seg_center_node[0],
-                edge_node_1=seg_center_node[-1] + 1, edge_node_2=seg_center_node[-1] + 2,
-                edge_ele_1=seg_center_ele[-1] + 1, edge_ele_2=seg_center_ele[-1] + 2,
-                rigid=rigid_base
-                )
-            contact_surface(
-                center_node=seg_center_node[-1],
-                edge_node_1=seg_center_node[-1] + 3, edge_node_2=seg_center_node[-1] + 4,
-                edge_ele_1=seg_center_ele[-1] + 3, edge_ele_2=seg_center_ele[-1] + 4,
-                rigid=rigid_top
-                )
+    #         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #         # 节段边缘节点
+    #         contact_surface(
+    #             center_node=seg_center_node[0],
+    #             edge_node_1=seg_center_node[-1] + 1, edge_node_2=seg_center_node[-1] + 2,
+    #             edge_ele_1=seg_center_ele[-1] + 1, edge_ele_2=seg_center_ele[-1] + 2,
+    #             rigid=rigid_base
+    #             )
+    #         contact_surface(
+    #             center_node=seg_center_node[-1],
+    #             edge_node_1=seg_center_node[-1] + 3, edge_node_2=seg_center_node[-1] + 4,
+    #             edge_ele_1=seg_center_ele[-1] + 3, edge_ele_2=seg_center_ele[-1] + 4,
+    #             rigid=rigid_top
+    #             )
 
-            "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-            # 节段返回数据结构
-            seg_key: SegmentReturn = {
-                'edge_node_1': seg_center_node[-1] + 1,
-                'edge_node_base': seg_center_node[0],
-                'edge_node_2': seg_center_node[-1] + 2,
+    #         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #         # 节段返回数据结构
+    #         seg_key: SegmentReturn = {
+    #             'edge_node_1': seg_center_node[-1] + 1,
+    #             'edge_node_base': seg_center_node[0],
+    #             'edge_node_2': seg_center_node[-1] + 2,
                 
-                'edge_node_3': seg_center_node[-1] + 3,
-                'edge_node_top': seg_center_node[-1],
-                'edge_node_4': seg_center_node[-1] + 4,
+    #             'edge_node_3': seg_center_node[-1] + 3,
+    #             'edge_node_top': seg_center_node[-1],
+    #             'edge_node_4': seg_center_node[-1] + 4,
                 
-                'main_node': seg_center_node,
-                'main_ele': seg_center_ele,
-                }
+    #             'main_node': seg_center_node,
+    #             'main_ele': seg_center_ele,
+    #             }
 
-            return seg_key
+    #         return seg_key
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 墩柱
-        seg_1 = segment(
-            node_start=1100, ele_start=1100,
-            start_coord=(0., -PierW / 2., 0.), end_coord=(0., -PierW / 2., PierH / 2.),
-            rigid_top=True, rigid_base=True
-            )
-        seg_2 = segment(
-            node_start=1200, ele_start=1200,
-            start_coord=(0., PierW / 2., 0.), end_coord=(0., PierW / 2., PierH / 2.),
-            rigid_top=True, rigid_base=True
-            )
-        seg_3 = segment(
-            node_start=1300, ele_start=1300,
-            start_coord=(0., -PierW / 2., PierH / 2.), end_coord=(0., -PierW / 2., PierH),
-            rigid_top=True, rigid_base=True
-            )
-        seg_4 = segment(
-            node_start=1400, ele_start=1400,
-            start_coord=(0., PierW / 2., PierH / 2.), end_coord=(0., PierW / 2., PierH),
-            rigid_top=True, rigid_base=True
-            )
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 墩柱
+    #     seg_1 = segment(
+    #         node_start=1100, ele_start=1100,
+    #         start_coord=(0., -PierW / 2., 0.), end_coord=(0., -PierW / 2., PierH / 2.),
+    #         rigid_top=True, rigid_base=True
+    #         )
+    #     seg_2 = segment(
+    #         node_start=1200, ele_start=1200,
+    #         start_coord=(0., PierW / 2., 0.), end_coord=(0., PierW / 2., PierH / 2.),
+    #         rigid_top=True, rigid_base=True
+    #         )
+    #     seg_3 = segment(
+    #         node_start=1300, ele_start=1300,
+    #         start_coord=(0., -PierW / 2., PierH / 2.), end_coord=(0., -PierW / 2., PierH),
+    #         rigid_top=True, rigid_base=True
+    #         )
+    #     seg_4 = segment(
+    #         node_start=1400, ele_start=1400,
+    #         start_coord=(0., PierW / 2., PierH / 2.), end_coord=(0., PierW / 2., PierH),
+    #         rigid_top=True, rigid_base=True
+    #         )
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 盖梁节点
-        bent_cap_coord = [
-            (0., -L / 2., PierH + lh_bent_cap),
-            (0., -PierW / 2., PierH + lh_bent_cap),
-            (0., -PierW / 4., PierH + lh_bent_cap),
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 盖梁节点
+    #     bent_cap_coord = [
+    #         (0., -L / 2., PierH + lh_bent_cap),
+    #         (0., -PierW / 2., PierH + lh_bent_cap),
+    #         (0., -PierW / 4., PierH + lh_bent_cap),
             
-            (0., 0., PierH + lh_bent_cap),
+    #         (0., 0., PierH + lh_bent_cap),
             
-            (0., PierW / 4., PierH + lh_bent_cap),
-            (0., PierW / 2., PierH + lh_bent_cap),
-            (0., L / 2., PierH + lh_bent_cap),
-            ]
-        bent_cap_node = self.MCTs.node_create(2000, bent_cap_coord) # 创建盖梁节点
-        # 盖梁单元连接
-        bent_cap_node_links = []
-        for node_i, node_j in pairwise(bent_cap_node):
-            bent_cap_node_links.append((node_i, node_j))
-        # 盖梁单元
-        bent_cap_ele = self.MCTs.ele_create(2000, bent_cap_node_links, tag_np_beam)
+    #         (0., PierW / 4., PierH + lh_bent_cap),
+    #         (0., PierW / 2., PierH + lh_bent_cap),
+    #         (0., L / 2., PierH + lh_bent_cap),
+    #         ]
+    #     bent_cap_node = self.MCTs.node_create(2000, bent_cap_coord) # 创建盖梁节点
+    #     # 盖梁单元连接
+    #     bent_cap_node_links = []
+    #     for node_i, node_j in pairwise(bent_cap_node):
+    #         bent_cap_node_links.append((node_i, node_j))
+    #     # 盖梁单元
+    #     bent_cap_ele = self.MCTs.ele_create(2000, bent_cap_node_links, tag_np_beam)
         
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 墩柱 底部 接触面 1
-        contact_node_1 = 3100
-        contact_ele_1 = 3100
-        ops.node(contact_node_1 + 1, 0., -PierW / 2, 0.) # 接触面中心节点
-        ops.node(contact_node_1 + 2, 0., -PierW / 2 - lw_pier, 0.) # 接触面中心节点
-        ops.node(contact_node_1 + 3, 0., -PierW / 2 + lw_pier, 0.) # 接触面中心节点
-        ops.fix(contact_node_1 + 1, 1, 1, 1, 1, 1, 1)
-        ops.fix(contact_node_1 + 2, 1, 1, 1, 1, 1, 1)
-        ops.fix(contact_node_1 + 3, 1, 1, 1, 1, 1, 1)
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 墩柱 底部 接触面 1
+    #     contact_node_1 = 3100
+    #     contact_ele_1 = 3100
+    #     ops.node(contact_node_1 + 1, 0., -PierW / 2, 0.) # 接触面中心节点
+    #     ops.node(contact_node_1 + 2, 0., -PierW / 2 - lw_pier, 0.) # 接触面中心节点
+    #     ops.node(contact_node_1 + 3, 0., -PierW / 2 + lw_pier, 0.) # 接触面中心节点
+    #     ops.fix(contact_node_1 + 1, 1, 1, 1, 1, 1, 1)
+    #     ops.fix(contact_node_1 + 2, 1, 1, 1, 1, 1, 1)
+    #     ops.fix(contact_node_1 + 3, 1, 1, 1, 1, 1, 1)
         
-        # 墩柱 底部 接触面 2
-        contact_node_2 = 3200
-        contact_ele_2 = 3200
-        ops.node(contact_node_2 + 1, 0., PierW / 2., 0.) # 接触面中心节点
-        ops.node(contact_node_2 + 2, 0., PierW / 2. - lw_pier, 0.) # 接触面中心节点
-        ops.node(contact_node_2 + 3, 0., PierW / 2. + lw_pier, 0.) # 接触面中心节点
-        ops.fix(contact_node_2 + 1, 1, 1, 1, 1, 1, 1)
-        ops.fix(contact_node_2 + 2, 1, 1, 1, 1, 1, 1)
-        ops.fix(contact_node_2 + 3, 1, 1, 1, 1, 1, 1)
+    #     # 墩柱 底部 接触面 2
+    #     contact_node_2 = 3200
+    #     contact_ele_2 = 3200
+    #     ops.node(contact_node_2 + 1, 0., PierW / 2., 0.) # 接触面中心节点
+    #     ops.node(contact_node_2 + 2, 0., PierW / 2. - lw_pier, 0.) # 接触面中心节点
+    #     ops.node(contact_node_2 + 3, 0., PierW / 2. + lw_pier, 0.) # 接触面中心节点
+    #     ops.fix(contact_node_2 + 1, 1, 1, 1, 1, 1, 1)
+    #     ops.fix(contact_node_2 + 2, 1, 1, 1, 1, 1, 1)
+    #     ops.fix(contact_node_2 + 3, 1, 1, 1, 1, 1, 1)
 
-        # 墩柱 顶部 接触面 3
-        contact_node_3 = 3300
-        contact_ele_3 = 3300
-        ops.node(contact_node_3 + 1, 0., -PierW / 2., PierH) # 接触面中心节点
-        contact_surface(
-            center_node=contact_node_3 + 1,
-            edge_node_1=contact_node_3 + 2, edge_node_2=contact_node_3 + 3,
-            edge_ele_1=contact_ele_3 + 1, edge_ele_2=contact_ele_3 + 2,
-            rigid=False
-            )
+    #     # 墩柱 顶部 接触面 3
+    #     contact_node_3 = 3300
+    #     contact_ele_3 = 3300
+    #     ops.node(contact_node_3 + 1, 0., -PierW / 2., PierH) # 接触面中心节点
+    #     contact_surface(
+    #         center_node=contact_node_3 + 1,
+    #         edge_node_1=contact_node_3 + 2, edge_node_2=contact_node_3 + 3,
+    #         edge_ele_1=contact_ele_3 + 1, edge_ele_2=contact_ele_3 + 2,
+    #         rigid=False
+    #         )
         
-        # 墩柱 顶部 接触面 4
-        contact_node_4 = 3400
-        contact_ele_4 = 3400
-        ops.node(contact_node_4 + 1, 0., PierW / 2., PierH) # 接触面中心节点
-        contact_surface(
-            center_node=contact_node_4 + 1,
-            edge_node_1=contact_node_4 + 2, edge_node_2=contact_node_4 + 3,
-            edge_ele_1=contact_ele_4 + 1, edge_ele_2=contact_ele_4 + 2,
-            rigid=False
-            )
+    #     # 墩柱 顶部 接触面 4
+    #     contact_node_4 = 3400
+    #     contact_ele_4 = 3400
+    #     ops.node(contact_node_4 + 1, 0., PierW / 2., PierH) # 接触面中心节点
+    #     contact_surface(
+    #         center_node=contact_node_4 + 1,
+    #         edge_node_1=contact_node_4 + 2, edge_node_2=contact_node_4 + 3,
+    #         edge_ele_1=contact_ele_4 + 1, edge_ele_2=contact_ele_4 + 2,
+    #         rigid=False
+    #         )
         
-        # 盖梁接触面连接
-        # ops.rigidLink('beam', bent_cap_node[1], contact_node_3 + 1)
-        # ops.rigidLink('beam', bent_cap_node[-2], contact_node_4 + 1)
-        ops.rigidLink('beam', contact_node_3 + 1, bent_cap_node[1])
-        ops.rigidLink('beam', contact_node_4 + 1, bent_cap_node[-2])
+    #     # 盖梁接触面连接
+    #     # ops.rigidLink('beam', bent_cap_node[1], contact_node_3 + 1)
+    #     # ops.rigidLink('beam', bent_cap_node[-2], contact_node_4 + 1)
+    #     ops.rigidLink('beam', contact_node_3 + 1, bent_cap_node[1])
+    #     ops.rigidLink('beam', contact_node_4 + 1, bent_cap_node[-2])
         
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 材料 对应 自由度
-        dir_mats_silp = [matENT, K_ke, K_ke, K_free, K_free, K_free]  # 待定 // 将节段上下两端的横向延出的单元刚度设置为钢臂
-        dir_mats = [matENT, K_fix, K_fix, K_free, K_free, K_free]  # 零长单元局部方向
-        dirs = [1, 2, 3, 4, 5, 6]
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 材料 对应 自由度
+    #     dir_mats_silp = [matENT, K_ke, K_ke, K_free, K_free, K_free]  # 待定 // 将节段上下两端的横向延出的单元刚度设置为钢臂
+    #     dir_mats = [matENT, K_fix, K_fix, K_free, K_free, K_free]  # 零长单元局部方向
+    #     dirs = [1, 2, 3, 4, 5, 6]
 
-        # 竖向 零长单元 坐标转换
-        vecx = [0, 0, 1]  # 局部x -> 整体坐标
-        vecyp = [0, 1, 0]  # 局部y -> 整体坐标
+    #     # 竖向 零长单元 坐标转换
+    #     vecx = [0, 0, 1]  # 局部x -> 整体坐标
+    #     vecyp = [0, 1, 0]  # 局部y -> 整体坐标
         
-        # pier 1 接触面单元
-        contact_ele_start_1 = 4100
-        ops.element('zeroLength', contact_ele_start_1 + 2, *[contact_node_1 + 2, seg_1['edge_node_1']],
-                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
-        ops.element('zeroLength', contact_ele_start_1 + 1, *[contact_node_1 + 1, seg_1['edge_node_base']],
-                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
-        ops.element('zeroLength', contact_ele_start_1 + 3, *[contact_node_1 + 3, seg_1['edge_node_2']],
-                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+    #     # pier 1 接触面单元
+    #     contact_ele_start_1 = 4100
+    #     ops.element('zeroLength', contact_ele_start_1 + 2, *[contact_node_1 + 2, seg_1['edge_node_1']],
+    #                 '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+    #     ops.element('zeroLength', contact_ele_start_1 + 1, *[contact_node_1 + 1, seg_1['edge_node_base']],
+    #                 '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+    #     ops.element('zeroLength', contact_ele_start_1 + 3, *[contact_node_1 + 3, seg_1['edge_node_2']],
+    #                 '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
 
-        ops.element('zeroLength', contact_ele_start_1 + 5, *[seg_1['edge_node_3'], seg_3['edge_node_1']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
-        ops.element('zeroLength', contact_ele_start_1 + 4, *[seg_1['edge_node_top'], seg_3['edge_node_base']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
-        ops.element('zeroLength', contact_ele_start_1 + 6, *[seg_1['edge_node_4'], seg_3['edge_node_2']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
+    #     ops.element('zeroLength', contact_ele_start_1 + 5, *[seg_1['edge_node_3'], seg_3['edge_node_1']],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
+    #     ops.element('zeroLength', contact_ele_start_1 + 4, *[seg_1['edge_node_top'], seg_3['edge_node_base']],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
+    #     ops.element('zeroLength', contact_ele_start_1 + 6, *[seg_1['edge_node_4'], seg_3['edge_node_2']],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
 
-        ops.element('zeroLength', contact_ele_start_1 + 8, *[seg_3['edge_node_3'], contact_node_3 + 2],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
-        ops.element('zeroLength', contact_ele_start_1 + 7, *[seg_3['edge_node_top'], contact_node_3 + 1],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
-        ops.element('zeroLength', contact_ele_start_1 + 9, *[seg_3['edge_node_4'], contact_node_3 + 3],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
+    #     ops.element('zeroLength', contact_ele_start_1 + 8, *[seg_3['edge_node_3'], contact_node_3 + 2],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
+    #     ops.element('zeroLength', contact_ele_start_1 + 7, *[seg_3['edge_node_top'], contact_node_3 + 1],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
+    #     ops.element('zeroLength', contact_ele_start_1 + 9, *[seg_3['edge_node_4'], contact_node_3 + 3],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
 
-        # pier 2 接触面单元
-        contact_ele_start_2 = 4200
-        ops.element('zeroLength', contact_ele_start_2 + 2, *[contact_node_2 + 2, seg_2['edge_node_1']],
-                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
-        ops.element('zeroLength', contact_ele_start_2 + 1, *[contact_node_2 + 1, seg_2['edge_node_base']],
-                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
-        ops.element('zeroLength', contact_ele_start_2 + 3, *[contact_node_2 + 3, seg_2['edge_node_2']],
-                    '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+    #     # pier 2 接触面单元
+    #     contact_ele_start_2 = 4200
+    #     ops.element('zeroLength', contact_ele_start_2 + 2, *[contact_node_2 + 2, seg_2['edge_node_1']],
+    #                 '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+    #     ops.element('zeroLength', contact_ele_start_2 + 1, *[contact_node_2 + 1, seg_2['edge_node_base']],
+    #                 '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
+    #     ops.element('zeroLength', contact_ele_start_2 + 3, *[contact_node_2 + 3, seg_2['edge_node_2']],
+    #                 '-mat', *dir_mats_silp, '-dir', *dirs, '-orient', *vecx, *vecyp) # 底部
 
-        ops.element('zeroLength', contact_ele_start_2 + 5, *[seg_2['edge_node_3'], seg_4['edge_node_1']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
-        ops.element('zeroLength', contact_ele_start_2 + 4, *[seg_2['edge_node_top'], seg_4['edge_node_base']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
-        ops.element('zeroLength', contact_ele_start_2 + 6, *[seg_2['edge_node_4'], seg_4['edge_node_2']],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
+    #     ops.element('zeroLength', contact_ele_start_2 + 5, *[seg_2['edge_node_3'], seg_4['edge_node_1']],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
+    #     ops.element('zeroLength', contact_ele_start_2 + 4, *[seg_2['edge_node_top'], seg_4['edge_node_base']],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
+    #     ops.element('zeroLength', contact_ele_start_2 + 6, *[seg_2['edge_node_4'], seg_4['edge_node_2']],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 中间
 
-        ops.element('zeroLength', contact_ele_start_2 + 8, *[seg_4['edge_node_3'], contact_node_4 + 2],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
-        ops.element('zeroLength', contact_ele_start_2 + 7, *[seg_4['edge_node_top'], contact_node_4 + 1],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
-        ops.element('zeroLength', contact_ele_start_2 + 9, *[seg_4['edge_node_4'], contact_node_4 + 3],
-                    '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
+    #     ops.element('zeroLength', contact_ele_start_2 + 8, *[seg_4['edge_node_3'], contact_node_4 + 2],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
+    #     ops.element('zeroLength', contact_ele_start_2 + 7, *[seg_4['edge_node_top'], contact_node_4 + 1],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
+    #     ops.element('zeroLength', contact_ele_start_2 + 9, *[seg_4['edge_node_4'], contact_node_4 + 3],
+    #                 '-mat', *dir_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # 顶部
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 耗能钢筋材料
-        ED_bar = 20 # 耗能钢筋材料编号
-        ED_fy = 437.3 * UNIT.mpa
-        ED_Es = 197 * UNIT.gpa
-        ED_area = np.pi * (6 * UNIT.mm) ** 2 # 耗能钢筋面积
-        ops.uniaxialMaterial('Steel02', ED_bar, ED_fy, ED_Es, 0.01, 18, 0.925, 0.15)
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 耗能钢筋材料
+    #     ED_bar = 20 # 耗能钢筋材料编号
+    #     ED_fy = 437.3 * UNIT.mpa
+    #     ED_Es = 197 * UNIT.gpa
+    #     ED_area = np.pi * (6 * UNIT.mm) ** 2 # 耗能钢筋面积
+    #     ops.uniaxialMaterial('Steel02', ED_bar, ED_fy, ED_Es, 0.01, 18, 0.925, 0.15)
         
-        # pier 1 耗能钢筋
-        ED_node_1 = 5100
-        # 粘结端
-        ops.node(ED_node_1 + 1, 0., -PierW / 2. - lw_pier / 2, -ED_l)
-        ops.node(ED_node_1 + 2, 0., -PierW / 2. + lw_pier / 2, -ED_l)
-        ops.fix(ED_node_1 + 1, 1, 1, 1, 1, 1, 1)
-        ops.fix(ED_node_1 + 2, 1, 1, 1, 1, 1, 1)
-        # 节段端
-        ops.node(ED_node_1 + 3, 0., -PierW / 2. - lw_pier / 2, 0.)
-        ops.node(ED_node_1 + 4, 0., -PierW / 2. + lw_pier / 2, 0.)
-        ops.rigidLink('beam', seg_1['edge_node_base'], ED_node_1 + 3)
-        ops.rigidLink('beam', seg_1['edge_node_base'], ED_node_1 + 4)
-        # 耗能钢筋
-        ED_ele_1 = 5100
-        ops.element('Truss', ED_ele_1 + 1, *[ED_node_1 + 1, ED_node_1 + 3], ED_area, ED_bar)
-        ops.element('Truss', ED_ele_1 + 2, *[ED_node_1 + 2, ED_node_1 + 4], ED_area, ED_bar)
+    #     # pier 1 耗能钢筋
+    #     ED_node_1 = 5100
+    #     # 粘结端
+    #     ops.node(ED_node_1 + 1, 0., -PierW / 2. - lw_pier / 2, -ED_l)
+    #     ops.node(ED_node_1 + 2, 0., -PierW / 2. + lw_pier / 2, -ED_l)
+    #     ops.fix(ED_node_1 + 1, 1, 1, 1, 1, 1, 1)
+    #     ops.fix(ED_node_1 + 2, 1, 1, 1, 1, 1, 1)
+    #     # 节段端
+    #     ops.node(ED_node_1 + 3, 0., -PierW / 2. - lw_pier / 2, 0.)
+    #     ops.node(ED_node_1 + 4, 0., -PierW / 2. + lw_pier / 2, 0.)
+    #     ops.rigidLink('beam', seg_1['edge_node_base'], ED_node_1 + 3)
+    #     ops.rigidLink('beam', seg_1['edge_node_base'], ED_node_1 + 4)
+    #     # 耗能钢筋
+    #     ED_ele_1 = 5100
+    #     ops.element('Truss', ED_ele_1 + 1, *[ED_node_1 + 1, ED_node_1 + 3], ED_area, ED_bar)
+    #     ops.element('Truss', ED_ele_1 + 2, *[ED_node_1 + 2, ED_node_1 + 4], ED_area, ED_bar)
 
-        # pier 2 耗能钢筋
-        ED_node_2 = 5200
-        # 粘结端
-        ops.node(ED_node_2 + 1, 0., PierW / 2. - lw_pier / 2, -ED_l)
-        ops.node(ED_node_2 + 2, 0., PierW / 2. + lw_pier / 2, -ED_l)
-        ops.fix(ED_node_2 + 1, 1, 1, 1, 1, 1, 1)
-        ops.fix(ED_node_2 + 2, 1, 1, 1, 1, 1, 1)
-        # 节段端
-        ops.node(ED_node_2 + 3, 0., PierW / 2. - lw_pier / 2, 0.)
-        ops.node(ED_node_2 + 4, 0., PierW / 2. + lw_pier / 2, 0.)
-        ops.rigidLink('beam', seg_2['edge_node_base'], ED_node_2 + 3)
-        ops.rigidLink('beam', seg_2['edge_node_base'], ED_node_2 + 4)
-        # 耗能钢筋
-        ED_ele_2 = 5200
-        ops.element('Truss', ED_ele_2 + 1, *[ED_node_2 + 1, ED_node_2 + 3], ED_area, ED_bar)
-        ops.element('Truss', ED_ele_2 + 2, *[ED_node_2 + 2, ED_node_2 + 4], ED_area, ED_bar)
+    #     # pier 2 耗能钢筋
+    #     ED_node_2 = 5200
+    #     # 粘结端
+    #     ops.node(ED_node_2 + 1, 0., PierW / 2. - lw_pier / 2, -ED_l)
+    #     ops.node(ED_node_2 + 2, 0., PierW / 2. + lw_pier / 2, -ED_l)
+    #     ops.fix(ED_node_2 + 1, 1, 1, 1, 1, 1, 1)
+    #     ops.fix(ED_node_2 + 2, 1, 1, 1, 1, 1, 1)
+    #     # 节段端
+    #     ops.node(ED_node_2 + 3, 0., PierW / 2. - lw_pier / 2, 0.)
+    #     ops.node(ED_node_2 + 4, 0., PierW / 2. + lw_pier / 2, 0.)
+    #     ops.rigidLink('beam', seg_2['edge_node_base'], ED_node_2 + 3)
+    #     ops.rigidLink('beam', seg_2['edge_node_base'], ED_node_2 + 4)
+    #     # 耗能钢筋
+    #     ED_ele_2 = 5200
+    #     ops.element('Truss', ED_ele_2 + 1, *[ED_node_2 + 1, ED_node_2 + 3], ED_area, ED_bar)
+    #     ops.element('Truss', ED_ele_2 + 2, *[ED_node_2 + 2, ED_node_2 + 4], ED_area, ED_bar)
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 预应力固定节点
-        PT_fix_node = 6000
-        # 底部
-        ops.node(PT_fix_node + 1, 0., -PierW / 2., -lh_bent_cap * 2.)
-        ops.node(PT_fix_node + 2, 0., PierW / 2., -lh_bent_cap * 2.)
-        # 底部固定
-        ops.fix(PT_fix_node + 1, 1, 1, 1, 1, 1, 1)
-        ops.fix(PT_fix_node + 2, 1, 1, 1, 1, 1, 1)
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 预应力固定节点
+    #     PT_fix_node = 6000
+    #     # 底部
+    #     ops.node(PT_fix_node + 1, 0., -PierW / 2., -lh_bent_cap * 2.)
+    #     ops.node(PT_fix_node + 2, 0., PierW / 2., -lh_bent_cap * 2.)
+    #     # 底部固定
+    #     ops.fix(PT_fix_node + 1, 1, 1, 1, 1, 1, 1)
+    #     ops.fix(PT_fix_node + 2, 1, 1, 1, 1, 1, 1)
 
-        # 顶部
-        ops.node(PT_fix_node + 3, 0., -PierW / 2., PierH + lh_bent_cap * 2.)
-        ops.node(PT_fix_node + 4, 0., PierW / 2., PierH + lh_bent_cap * 2.)
-        # 连接盖梁
-        ops.rigidLink('beam', bent_cap_node[1], PT_fix_node + 3)
-        ops.rigidLink('beam', bent_cap_node[-2], PT_fix_node + 4)
+    #     # 顶部
+    #     ops.node(PT_fix_node + 3, 0., -PierW / 2., PierH + lh_bent_cap * 2.)
+    #     ops.node(PT_fix_node + 4, 0., PierW / 2., PierH + lh_bent_cap * 2.)
+    #     # 连接盖梁
+    #     ops.rigidLink('beam', bent_cap_node[1], PT_fix_node + 3)
+    #     ops.rigidLink('beam', bent_cap_node[-2], PT_fix_node + 4)
         
-        # 张拉控制力
-        axial_force = 300. * UNIT.kn
-        # 钢绞线总面积
-        PT_area = 3 * (np.pi * (15.2 * UNIT.mm / 2) ** 2)
-        # 张拉控制应力
-        sigma = axial_force / PT_area
+    #     # 张拉控制力
+    #     axial_force = 300. * UNIT.kn
+    #     # 钢绞线总面积
+    #     PT_area = 3 * (np.pi * (15.2 * UNIT.mm / 2) ** 2)
+    #     # 张拉控制应力
+    #     sigma = axial_force / PT_area
 
-        # 预应力筋 材料
-        PT_mat = 30 # 材料标签
-        PT_fy = 1906 * UNIT.mpa
-        PT_Es = 200 * UNIT.gpa
-        PT_ratio = 0.43 * PT_fy # 控制张拉比例
-        ops.uniaxialMaterial('Steel02', PT_mat, PT_fy, PT_Es, 0.01, 18, 0.925, 0.15, 0, 1, 0, 1, sigma)
+    #     # 预应力筋 材料
+    #     PT_mat = 30 # 材料标签
+    #     PT_fy = 1906 * UNIT.mpa
+    #     PT_Es = 200 * UNIT.gpa
+    #     PT_ratio = 0.43 * PT_fy # 控制张拉比例
+    #     ops.uniaxialMaterial('Steel02', PT_mat, PT_fy, PT_Es, 0.01, 18, 0.925, 0.15, 0, 1, 0, 1, sigma)
 
-        # 预应力纤维
-        # PT_sec = 300
-        # ops.section('fiberSec', 300, '-GJ', 100000000)
-        # ops.fiber(0., 0., PT_area, PT_mat)
+    #     # 预应力纤维
+    #     # PT_sec = 300
+    #     # ops.section('fiberSec', 300, '-GJ', 100000000)
+    #     # ops.fiber(0., 0., PT_area, PT_mat)
 
-        # 预应力筋单元
-        ops.element('Truss', 100, *(PT_fix_node + 1, PT_fix_node + 3), PT_area, PT_mat)
-        ops.element('Truss', 200, *(PT_fix_node + 2, PT_fix_node + 4), PT_area, PT_mat)
-        # ops.element('Truss', 100, *(PT_fix_node + 1, PT_fix_node + 3), PT_sec)
-        # ops.element('Truss', 200, *(PT_fix_node + 2, PT_fix_node + 4), PT_sec)
+    #     # 预应力筋单元
+    #     ops.element('Truss', 100, *(PT_fix_node + 1, PT_fix_node + 3), PT_area, PT_mat)
+    #     ops.element('Truss', 200, *(PT_fix_node + 2, PT_fix_node + 4), PT_area, PT_mat)
+    #     # ops.element('Truss', 100, *(PT_fix_node + 1, PT_fix_node + 3), PT_sec)
+    #     # ops.element('Truss', 200, *(PT_fix_node + 2, PT_fix_node + 4), PT_sec)
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 质量密度
-        rho = 2600 * (UNIT.kg / (UNIT.m ** 3))  # kg/m3
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 质量密度
+    #     rho = 2600 * (UNIT.kg / (UNIT.m ** 3))  # kg/m3
 
-        # 单位节点质量
-        bent_cap_mass = L * BentCapProps.SecMashProps.A * rho / len(bent_cap_node)
-        seg_1_mass = Seg * PierProps.SecMashProps.A * rho / len(seg_1['main_node'])
-        seg_2_mass = Seg * PierProps.SecMashProps.A * rho / len(seg_2['main_node'])
-        seg_3_mass = Seg * PierProps.SecMashProps.A * rho / len(seg_3['main_node'])
-        seg_4_mass = Seg * PierProps.SecMashProps.A * rho / len(seg_4['main_node'])
+    #     # 单位节点质量
+    #     bent_cap_mass = L * BentCapProps.SecMashProps.A * rho / len(bent_cap_node)
+    #     seg_1_mass = Seg * PierProps.SecMashProps.A * rho / len(seg_1['main_node'])
+    #     seg_2_mass = Seg * PierProps.SecMashProps.A * rho / len(seg_2['main_node'])
+    #     seg_3_mass = Seg * PierProps.SecMashProps.A * rho / len(seg_3['main_node'])
+    #     seg_4_mass = Seg * PierProps.SecMashProps.A * rho / len(seg_4['main_node'])
 
-        # 节点质量
-        for i in bent_cap_node:
-            ops.mass(i, bent_cap_mass, bent_cap_mass, bent_cap_mass, 0, 0, 0)
-        for i in seg_1['main_node']:
-            ops.mass(i, seg_1_mass, seg_1_mass, seg_1_mass, 0, 0, 0)
-        for i in seg_2['main_node']:
-            ops.mass(i, seg_2_mass, seg_2_mass, seg_2_mass, 0, 0, 0)
-        for i in seg_3['main_node']:
-            ops.mass(i, seg_3_mass, seg_3_mass, seg_3_mass, 0, 0, 0)
-        for i in seg_4['main_node']:
-            ops.mass(i, seg_4_mass, seg_4_mass, seg_4_mass, 0, 0, 0)
+    #     # 节点质量
+    #     for i in bent_cap_node:
+    #         ops.mass(i, bent_cap_mass, bent_cap_mass, bent_cap_mass, 0, 0, 0)
+    #     for i in seg_1['main_node']:
+    #         ops.mass(i, seg_1_mass, seg_1_mass, seg_1_mass, 0, 0, 0)
+    #     for i in seg_2['main_node']:
+    #         ops.mass(i, seg_2_mass, seg_2_mass, seg_2_mass, 0, 0, 0)
+    #     for i in seg_3['main_node']:
+    #         ops.mass(i, seg_3_mass, seg_3_mass, seg_3_mass, 0, 0, 0)
+    #     for i in seg_4['main_node']:
+    #         ops.mass(i, seg_4_mass, seg_4_mass, seg_4_mass, 0, 0, 0)
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 定义模型不同部位名称
-        LOCATION_INFO = namedtuple('LOCATION_INFO', ['eleTag', 'integ', 'location'])
-        # 主函数 要返回的数据
-        SectionMat={
-                'BentCapProps': BentCapProps,
-                'PierProps': PierProps,
-                }
-        KeyNode={
-                # 位移控制节点
-                'ctrl_node': bent_cap_node[0],
-                }
-        KeyEle={
-                # 预应力
-                'Pier_1_PT_bar': 100,
-                'Pier_2_PT_bar': 200,
-                # 耗能钢筋
-                'Pier_1_ED_bar_1': ED_ele_1 + 1,
-                'Pier_1_ED_bar_2': ED_ele_1 + 2,
-                'Pier_2_ED_bar_1': ED_ele_2 + 1,
-                'Pier_2_ED_bar_2': ED_ele_2 + 2,
-                }
-        LocationDamage=[
-                LOCATION_INFO(eleTag=seg_1['main_ele'][0], integ=1, location='seg_1_base'),
-                LOCATION_INFO(eleTag=seg_1['main_ele'][-1], integ=5, location='seg_1_top'),
+    #     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    #     # 定义模型不同部位名称
+    #     LOCATION_INFO = namedtuple('LOCATION_INFO', ['eleTag', 'integ', 'location'])
+    #     # 主函数 要返回的数据
+    #     SectionMat={
+    #             'BentCapProps': BentCapProps,
+    #             'PierProps': PierProps,
+    #             }
+    #     KeyNode={
+    #             # 位移控制节点
+    #             'ctrl_node': bent_cap_node[0],
+    #             }
+    #     KeyEle={
+    #             # 预应力
+    #             'Pier_1_PT_bar': 100,
+    #             'Pier_2_PT_bar': 200,
+    #             # 耗能钢筋
+    #             'Pier_1_ED_bar_1': ED_ele_1 + 1,
+    #             'Pier_1_ED_bar_2': ED_ele_1 + 2,
+    #             'Pier_2_ED_bar_1': ED_ele_2 + 1,
+    #             'Pier_2_ED_bar_2': ED_ele_2 + 2,
+    #             }
+    #     LocationDamage=[
+    #             LOCATION_INFO(eleTag=seg_1['main_ele'][0], integ=1, location='seg_1_base'),
+    #             LOCATION_INFO(eleTag=seg_1['main_ele'][-1], integ=5, location='seg_1_top'),
 
-                LOCATION_INFO(eleTag=seg_2['main_ele'][0], integ=1, location='seg_2_base'),
-                LOCATION_INFO(eleTag=seg_2['main_ele'][-1], integ=5, location='seg_2_top'),
+    #             LOCATION_INFO(eleTag=seg_2['main_ele'][0], integ=1, location='seg_2_base'),
+    #             LOCATION_INFO(eleTag=seg_2['main_ele'][-1], integ=5, location='seg_2_top'),
                 
-                LOCATION_INFO(eleTag=seg_3['main_ele'][0], integ=1, location='seg_3_base'),
-                LOCATION_INFO(eleTag=seg_3['main_ele'][-1], integ=5, location='seg_3_top'),
+    #             LOCATION_INFO(eleTag=seg_3['main_ele'][0], integ=1, location='seg_3_base'),
+    #             LOCATION_INFO(eleTag=seg_3['main_ele'][-1], integ=5, location='seg_3_top'),
 
-                LOCATION_INFO(eleTag=seg_4['main_ele'][0], integ=1, location='seg_4_base'),
-                LOCATION_INFO(eleTag=seg_4['main_ele'][-1], integ=5, location='seg_4_top'),
-                ]
-        OtherOptional={
-                'ED_bar_yield_strain': ED_fy / ED_Es,
-                }
+    #             LOCATION_INFO(eleTag=seg_4['main_ele'][0], integ=1, location='seg_4_base'),
+    #             LOCATION_INFO(eleTag=seg_4['main_ele'][-1], integ=5, location='seg_4_top'),
+    #             ]
+    #     OtherOptional={
+    #             'ED_bar_yield_strain': ED_fy / ED_Es,
+    #             }
         
-        return SectionMat, KeyNode, KeyEle, LocationDamage, OtherOptional
+    #     return SectionMat, KeyNode, KeyEle, LocationDamage, OtherOptional
 
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def RockPier(
@@ -1328,7 +1332,6 @@ class RockPierModelTEST:
         )
 
         return self.model_props
-
 
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def RockPierBRB(
@@ -1449,7 +1452,7 @@ class RockPierModelTEST:
             'base_BRB': [base_brb_yield_disp, base_brb_yield_stiff, base_brb_yield_force],
             }, index=['屈服位移', '刚度贡献', '屈服强度'])
         # 导出 BRB 设计性能参数
-        pd_BRB_performance.to_excel(f"{modelPath}/BRB性能参数.xlsx")
+        # pd_BRB_performance.to_excel(f"{modelPath}/BRB性能参数.xlsx")
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 可视化输出模型
@@ -1570,7 +1573,7 @@ class RockPierModelTEST:
         return plt
     
     # "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-    # def reasp_seg_node_disp(self, odb_tag: Union[str, int]):
+    # def reasp_seg_node_disp_UZ(self, odb_tag: Union[str, int]):
     #     """零长截面单元 - 两节点的竖向位移"""
     #     # 导入数据
     #     ODB_node_disp_resp = opst.post.get_nodal_responses(odb_tag=odb_tag, resp_type='disp', print_info=False)
@@ -1606,32 +1609,32 @@ class RockPierModelTEST:
         
     #     return plt
     
-    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-    def reasp_seg_node_disp(self, odb_tag: Union[str, int]):
-        """柱顶与盖梁节点侧向位移对比"""
-        # 导入数据
-        ODB_node_disp_resp = opst.post.get_nodal_responses(odb_tag=odb_tag, resp_type='disp', print_info=False)
+    # "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+    # def reasp_seg_node_disp_UY(self, odb_tag: Union[str, int]):
+    #     """柱顶与盖梁节点侧向位移对比"""
+    #     # 导入数据
+    #     ODB_node_disp_resp = opst.post.get_nodal_responses(odb_tag=odb_tag, resp_type='disp', print_info=False)
         
-        # 墩顶 控制位移数据
-        disp = np.array(self.reasp_top_disp(odb_tag))
+    #     # 墩顶 控制位移数据
+    #     disp = np.array(self.reasp_top_disp(odb_tag))
         
-        # 接触面监控节点
-        pier_1_top_node = ODB_node_disp_resp.sel(nodeTags=1101, DOFs='UY')
-        pier_2_top_node = ODB_node_disp_resp.sel(nodeTags=2101, DOFs='UY')
+    #     # 接触面监控节点
+    #     pier_1_top_node = ODB_node_disp_resp.sel(nodeTags=1101, DOFs='UY')
+    #     pier_2_top_node = ODB_node_disp_resp.sel(nodeTags=2101, DOFs='UY')
         
-        # 绘图
-        plt.close('all')
-        plt.figure(figsize=(6, 4))
+    #     # 绘图
+    #     plt.close('all')
+    #     plt.figure(figsize=(6, 4))
         
-        plt.plot(disp, np.array(pier_1_top_node), label='Pier 1 Node', zorder=2)
-        plt.plot(disp, np.array(pier_2_top_node), label='Pier 2 Node', zorder=2)
+    #     plt.plot(disp, np.array(pier_1_top_node), label='Pier 1 Node', zorder=2)
+    #     plt.plot(disp, np.array(pier_2_top_node), label='Pier 2 Node', zorder=2)
         
-        plt.xlabel('Displacement (m)')
-        plt.ylabel('Node Disp (m)')
-        plt.legend(loc='lower right', bbox_to_anchor=(1, 0))
-        plt.grid(linestyle='--', linewidth=0.5, zorder=1)
+    #     plt.xlabel('Displacement (m)')
+    #     plt.ylabel('Node Disp (m)')
+    #     plt.legend(loc='lower right', bbox_to_anchor=(1, 0))
+    #     plt.grid(linestyle='--', linewidth=0.5, zorder=1)
         
-        return plt
+    #     return plt
     
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def reasp_PT_force(self, odb_tag: Union[str, int]):
@@ -1676,19 +1679,59 @@ class RockPierModelTEST:
         Pier_2_ED_2_strain = ODB_truss_resp['Strain'].sel(eleTags=self.model_props.KeyEle['Pier_2_ED_bar_2'])
         Pier_2_ED_2_stress = ODB_truss_resp['Stress'].sel(eleTags=self.model_props.KeyEle['Pier_2_ED_bar_2'])
         
-        # 绘图
+        # 创建DataFrame存储所有数据
+        df_ED = pd.DataFrame({
+            'disp': disp,
+            'Pier_1_ED_1_strain': np.array(Pier_1_ED_1_strain),
+            'Pier_1_ED_1_stress': np.array(Pier_1_ED_1_stress),
+            'Pier_1_ED_2_strain': np.array(Pier_1_ED_2_strain),
+            'Pier_1_ED_2_stress': np.array(Pier_1_ED_2_stress),
+            'Pier_2_ED_1_strain': np.array(Pier_2_ED_1_strain),
+            'Pier_2_ED_1_stress': np.array(Pier_2_ED_1_stress),
+            'Pier_2_ED_2_strain': np.array(Pier_2_ED_2_strain),
+            'Pier_2_ED_2_stress': np.array(Pier_2_ED_2_stress)
+        })
+    
+        # Pier 1 ED bars
         plt.close('all')
-        plt.figure(figsize=(6, 4))
+        fig1, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 8))
+
+        # Pier 1 ED bar 1
+        ax1.plot(Pier_1_ED_1_strain, Pier_1_ED_1_stress, label='ED bar 1', zorder=2)
+        ax1.set_xlabel('Strain')
+        ax1.set_ylabel('Stress')
+        ax1.set_title('Pier 1 ED Bar 1 Stress-Strain')
+        ax1.grid(linestyle='--', linewidth=0.5, zorder=1)
+
+        # Pier 1 ED bar 2
+        ax2.plot(Pier_1_ED_2_strain, Pier_1_ED_2_stress, label='ED bar 2', zorder=2)
+        ax2.set_xlabel('Strain')
+        ax2.set_ylabel('Stress')
+        ax2.set_title('Pier 1 ED Bar 2 Stress-Strain')
+        ax2.grid(linestyle='--', linewidth=0.5, zorder=1)
+
+        plt.tight_layout()
+
+        # Pier 2 ED bars
+        fig2, (ax3, ax4) = plt.subplots(2, 1, figsize=(6, 8))
+
+        # Pier 2 ED bar 1
+        ax3.plot(Pier_2_ED_1_strain, Pier_2_ED_1_stress, label='ED bar 1', zorder=2)
+        ax3.set_xlabel('Strain')
+        ax3.set_ylabel('Stress')
+        ax3.set_title('Pier 2 ED Bar 1 Stress-Strain')
+        ax3.grid(linestyle='--', linewidth=0.5, zorder=1)
+
+        # Pier 2 ED bar 2
+        ax4.plot(Pier_2_ED_2_strain, Pier_2_ED_2_stress, label='ED bar 2', zorder=2)
+        ax4.set_xlabel('Strain')
+        ax4.set_ylabel('Stress')
+        ax4.set_title('Pier 2 ED Bar 2 Stress-Strain')
+        ax4.grid(linestyle='--', linewidth=0.5, zorder=1)
+
+        plt.tight_layout()
         
-        plt.plot(Pier_1_ED_1_strain, Pier_1_ED_1_stress, label='Pier 1 ED bar 1', zorder=2)
-        plt.plot(Pier_1_ED_2_strain, Pier_1_ED_2_stress, label='Pier 1 ED bar 2', zorder=2)
-        
-        plt.xlabel('Strain')
-        plt.ylabel('Stress')
-        plt.legend(loc='lower right', bbox_to_anchor=(1, 0))
-        plt.grid(linestyle='--', linewidth=0.5, zorder=1)
-        
-        return plt
+        return fig1, fig2, df_ED
     
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def yield_ED(self, odb_tag: Union[str, int]):
@@ -1743,34 +1786,79 @@ class RockPierModelTEST:
             return min_yield_step
 
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-    def reasp_BRB_stress_strain(self, odb_tag: Union[str, int]):
+    def reasp_BRB(self, odb_tag: Union[str, int]):
         # 导入数据
         ODB_truss_resp = opst.post.get_element_responses(odb_tag=odb_tag, ele_type='Truss', print_info=False)
         # print(ODB_truss_resp)
         
         # 墩顶位移数据
         disp = np.array(self.reasp_top_disp(odb_tag))
-        # 预应力轴力数据
-        top_BRB_strain = ODB_truss_resp['Strain'].sel(eleTags=self.model_props.KeyEle['top_brb'])
-        top_BRB_stress = ODB_truss_resp['Stress'].sel(eleTags=self.model_props.KeyEle['top_brb'])
-        base_BRB_strain = ODB_truss_resp['Strain'].sel(eleTags=self.model_props.KeyEle['base_brb'])
-        base_BRB_stress = ODB_truss_resp['Stress'].sel(eleTags=self.model_props.KeyEle['base_brb'])
         
-        # 绘图
+        # 顶部 BRB 数据
+        top_BRB_strain = ODB_truss_resp['Strain'].sel(eleTags=self.model_props.KeyEle['top_brb']) # 应变
+        top_BRB_stress = ODB_truss_resp['Stress'].sel(eleTags=self.model_props.KeyEle['top_brb']) # 应力
+        top_BRB_axialForce = ODB_truss_resp['axialForce'].sel(eleTags=self.model_props.KeyEle['top_brb']) # 轴力
+        top_BRB_axialDefo = ODB_truss_resp['axialDefo'].sel(eleTags=self.model_props.KeyEle['top_brb']) # 轴向变形
+        
+        # 底部 BRB 数据
+        base_BRB_strain = ODB_truss_resp['Strain'].sel(eleTags=self.model_props.KeyEle['base_brb']) # 应变
+        base_BRB_stress = ODB_truss_resp['Stress'].sel(eleTags=self.model_props.KeyEle['base_brb']) # 应力
+        base_BRB_axialForce = ODB_truss_resp['axialForce'].sel(eleTags=self.model_props.KeyEle['base_brb']) # 轴力
+        base_BRB_axialDefo = ODB_truss_resp['axialDefo'].sel(eleTags=self.model_props.KeyEle['base_brb']) # 轴向变形
+        
         plt.close('all')
-        plt.figure(figsize=(6, 4))
-        # plt.plot(disp, PT_1_axialForce, label='Pier 1 ED bar', zorder=2)
-        # plt.plot(disp, PT_2_axialForce, label='Pier 2 ED bar', zorder=2)
-        
-        plt.plot(top_BRB_strain, top_BRB_stress, label='Top BRB', zorder=2)
-        plt.plot(base_BRB_strain, base_BRB_stress, label='Base BRB', zorder=2)
-        
-        plt.xlabel('Strain')
-        plt.ylabel('Stress')
-        plt.legend(loc='lower right', bbox_to_anchor=(1, 0))
-        plt.grid(linestyle='--', linewidth=0.5, zorder=1)
-        
-        return plt
+        # Top BRB
+        fig1, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 8))
+
+        # Top BRB 变形图
+        ax1.plot(disp, top_BRB_axialDefo, zorder=2)
+        ax1.set_xlabel('Displacement (m)')
+        ax1.set_ylabel('Axial Deformation (m)')
+        ax1.set_title('Top BRB Axial Deformation')
+        ax1.grid(linestyle='--', linewidth=0.5, zorder=1)
+
+        # Top BRB 轴力图
+        ax2.plot(disp, top_BRB_axialForce, zorder=2)
+        ax2.set_xlabel('Displacement (m)')
+        ax2.set_ylabel('Axial Force (kN)')
+        ax2.set_title('Top BRB Axial Force')
+        ax2.grid(linestyle='--', linewidth=0.5, zorder=1)
+
+        plt.tight_layout()
+
+        # Base BRB
+        fig2, (ax3, ax4) = plt.subplots(2, 1, figsize=(6, 8))
+
+        # Base BRB 变形图
+        ax3.plot(disp, base_BRB_axialDefo, zorder=2)
+        ax3.set_xlabel('Displacement (m)')
+        ax3.set_ylabel('Axial Deformation (m)')
+        ax3.set_title('Base BRB Axial Deformation')
+        ax3.grid(linestyle='--', linewidth=0.5, zorder=1)
+
+        # Base BRB 轴力图
+        ax4.plot(disp, base_BRB_axialForce, zorder=2)
+        ax4.set_xlabel('Displacement (m)')
+        ax4.set_ylabel('Axial Force (kN)')
+        ax4.set_title('Base BRB Axial Force')
+        ax4.grid(linestyle='--', linewidth=0.5, zorder=1)
+
+        plt.tight_layout()
+
+        # 创建DataFrame存储所有数据
+        df_BRB = pd.DataFrame({
+            'disp': disp,
+            'top_BRB_strain': np.array(top_BRB_strain),
+            'top_BRB_stress': np.array(top_BRB_stress),
+            'top_BRB_axialForce': np.array(top_BRB_axialForce),
+            'top_BRB_axialDefo': np.array(top_BRB_axialDefo),
+            'base_BRB_strain': np.array(base_BRB_strain),
+            'base_BRB_stress': np.array(base_BRB_stress),
+            'base_BRB_axialForce': np.array(base_BRB_axialForce),
+            'base_BRB_axialDefo': np.array(base_BRB_axialDefo)
+        })
+    
+        return fig1, fig2, df_BRB
 
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def yield_BRB(self, odb_tag: Union[str, int], min_step: bool = False):
@@ -1820,6 +1908,136 @@ class RockPierModelTEST:
             else:
                 # 返回 两个屈服step
                 return [top_BRB_yield.index.min(), base_BRB_yield.index.min()]
+
+    def rock_start(self, odb_tag: Union[str, int]):
+        
+        # 导入数据
+        ODB_ele_sec = opst.post.get_element_responses(odb_tag=odb_tag, ele_type="FiberSection", print_info=False)
+        
+        # 积分点
+        ele_sec_point = 5
+        # 单元号
+        ele_tag_pier_1 = self.model_props.KeyEle['pier_1_base_seg_ele']
+        ele_tag_pier_2 = self.model_props.KeyEle['pier_2_base_seg_ele']
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 基于 截面应力 筛选摇摆点
+        stress_based_pier_1 = ODB_ele_sec['Stresses'].sel(eleTags = ele_tag_pier_1, secPoints = ele_sec_point) # 筛选 单元
+        stress_based_pier_2 = ODB_ele_sec['Stresses'].sel(eleTags = ele_tag_pier_2, secPoints = ele_sec_point) # 筛选 单元
+        
+        # 摇摆点筛选函数
+        def rock_determine(stress_based: xr.DataArray):
+            
+            df_stress_based = stress_based.to_dataframe(name='Stress') # 转换为 DataFrame
+            df_stress_based.reset_index(inplace=True) # 重置索引
+
+            # 分组
+            df_stress_based_grouped = df_stress_based.pivot_table(
+                index='time', columns='fiberPoints', values='Stress').reset_index()
+            df_filtered = df_stress_based_grouped.iloc[1:] # 首先排除第一行（time=0.000000）
+
+            # 开始 摇摆点
+            rock_start = df_filtered[df_filtered == 0.].dropna(how='all').index.min()
+            
+            return rock_start
+        
+        # 摇摆点
+        rock_start_pier_1 = rock_determine(stress_based_pier_1)
+        rock_start_pier_2 = rock_determine(stress_based_pier_2)
+        rock_start_step = min(rock_start_pier_1, rock_start_pier_2) # 最先
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # Pier 1 绘图数据
+        ys_pier_1 = ODB_ele_sec['ys'].sel(eleTags = ele_tag_pier_1, secPoints = ele_sec_point)
+        zs_pier_1 = ODB_ele_sec['zs'].sel(eleTags = ele_tag_pier_1, secPoints = ele_sec_point)
+        Strains_pier_1 = ODB_ele_sec['Strains'].sel(eleTags = ele_tag_pier_1, secPoints = ele_sec_point).isel(time = rock_start_step)
+        Stresses_pier_1 = ODB_ele_sec['Stresses'].sel(eleTags = ele_tag_pier_1, secPoints = ele_sec_point).isel(time = rock_start_step)
+        # Pier 2 绘图数据
+        ys_pier_2 = ODB_ele_sec['ys'].sel(eleTags = ele_tag_pier_2, secPoints = ele_sec_point)
+        zs_pier_2 = ODB_ele_sec['zs'].sel(eleTags = ele_tag_pier_2, secPoints = ele_sec_point)
+        Strains_pier_2 = ODB_ele_sec['Strains'].sel(eleTags = ele_tag_pier_2, secPoints = ele_sec_point).isel(time = rock_start_step)
+        Stresses_pier_2 = ODB_ele_sec['Stresses'].sel(eleTags = ele_tag_pier_2, secPoints = ele_sec_point).isel(time = rock_start_step)
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 检索0
+        rock_mask_pier_1 = (Stresses_pier_1 == 0)
+        rock_mask_pier_2 = (Stresses_pier_2 == 0)
+        
+        # 绘图
+        plt.close('all')
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        fig_1, ax_1 = plt.subplots(figsize=(6, 4))
+        s_1 = ax_1.scatter(
+            ys_pier_1.where(~rock_mask_pier_1, drop=True), zs_pier_1.where(~rock_mask_pier_1, drop=True), # drop=True 去掉不满足的数据点
+            c=Stresses_pier_1.where(~rock_mask_pier_1, drop=True),
+            s=20,
+            cmap="rainbow",
+            zorder=2,
+        )
+        ax_1.scatter(
+            ys_pier_1.where(rock_mask_pier_1, drop=True), zs_pier_1.where(rock_mask_pier_1, drop=True),
+            c='#BDBDBD',
+            s=20,
+            label="Broken",
+            zorder=1,
+        )
+        # 坐标轴标签
+        ax_1.set_xlabel('local_y')
+        ax_1.set_ylabel('local_z')
+        
+        # 数据单位 1:1
+        # ax.set_aspect('equal', adjustable='box')
+        ax_1.set_aspect('equal', adjustable='datalim') # 保持 figsize
+        
+        # colorbar 
+        cbar_1 = fig_1.colorbar(s_1, ax=ax_1, pad=0.02)
+
+        # 单独 legend
+        handles, labels = ax_1.get_legend_handles_labels()
+        fig_1.legend(
+            handles, labels,
+            loc='lower right',
+            bbox_to_anchor=(0.92, 0.01),  # 调整这个值可以移动 legend
+            framealpha=0.9)
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        fig_2, ax_2 = plt.subplots(figsize=(6, 4))
+        s_2 = ax_2.scatter(
+            ys_pier_2.where(~rock_mask_pier_2, drop=True), zs_pier_2.where(~rock_mask_pier_2, drop=True),
+            c=Stresses_pier_2.where(~rock_mask_pier_2, drop=True),
+            s=20,
+            cmap="rainbow",
+            zorder=2,
+        )
+        ax_2.scatter(
+            ys_pier_2.where(rock_mask_pier_2, drop=True), zs_pier_2.where(rock_mask_pier_2, drop=True),
+            c='#BDBDBD',
+            s=20,
+            label="Broken",
+            zorder=1,
+        )
+        # 坐标轴标签
+        ax_2.set_xlabel('local_y')
+        ax_2.set_ylabel('local_z')
+
+        # 数据单位 1:1
+        ax_2.set_aspect('equal', adjustable='datalim')
+
+        # colorbar
+        cbar_2 = fig_2.colorbar(s_2, ax=ax_2, pad=0.02)
+
+        # 单独 legend
+        handles, labels = ax_2.get_legend_handles_labels()
+        fig_2.legend(
+            handles, labels,
+            loc='lower right',
+            bbox_to_anchor=(0.92, 0.01),
+            framealpha=0.9)
+
+        return fig_1, fig_2, rock_start_step
+
+        
+
 
 
 """
