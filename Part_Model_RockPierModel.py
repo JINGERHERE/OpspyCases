@@ -733,13 +733,13 @@ class RockPierModelTEST:
         
         return SectionMat, KeyNode, KeyEle, LocationDamage, OtherOptional
 
-    # "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-    # def _set_pier_conc(
-    #     self,
-    #     modelPath: str,
-    #     Ke: float,
-    #     info: bool
-    #     ):
+    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+    def _set_pier_conc(
+        self,
+        modelPath: str,
+        Ke: float,
+        info: bool
+        ):
 
     #     """
     #     该模型考虑了墩底滑移和混凝土耗能，对试验滞回曲线进行拟合 // 可能不理想
@@ -1251,6 +1251,7 @@ class RockPierModelTEST:
     #             }
         
     #     return SectionMat, KeyNode, KeyEle, LocationDamage, OtherOptional
+        ...
 
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def RockPier(
