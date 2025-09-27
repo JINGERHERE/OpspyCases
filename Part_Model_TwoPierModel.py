@@ -51,8 +51,10 @@ class TwoPierModelTEST:
 
     def __init__(self):
         
-        self.Ubig = 20000. * UNIT.gpa # 约束刚度
-        self.Usmall = 2.e-8 * UNIT.gpa # 释放刚度
+        # self.Ubig = 20000. * UNIT.gpa # 约束刚度
+        # self.Usmall = 2.e-8 * UNIT.gpa # 释放刚度
+        self.Ubig = 1.e8 # 约束刚度
+        self.Usmall = 1.e-8 * UNIT.gpa # 释放刚度
         self.MCTs: ModelCreateTools # 模型创建工具
 
         self.model_props: PVs.MODEL_PROPS # 模型的输出属性
@@ -259,42 +261,87 @@ class TwoPierModelTEST:
         # # J 端：buckling + gap
         ops.node(J_bucklingGap_i, *j_link_coord)
         ops.node(J_bucklingGap_j, *j_link_coord)
-
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 约束材料
-        fixMat = groupTag + 1
-        freeMat = groupTag + 2
-        ops.uniaxialMaterial('Elastic', fixMat, self.Ubig)
-        ops.uniaxialMaterial('Elastic', freeMat, self.Usmall)
-
-        # 间隙材料
-        gapMat = groupTag + 3
-        ops.uniaxialMaterial("HookGap", gapMat, self.Ubig, -gap, gap) # tag     E    gap_p   gap_n
-        
-        # 摩擦材料
-        slipMat = groupTag + 4
-        ops.uniaxialMaterial('Elastic', slipMat, gapK)
-        # 并联材料：gap + slip
-        GapModel = groupTag + 5
-        ops.uniaxialMaterial('Parallel', GapModel, gapMat, slipMat)
-        # 屈曲材料
-        bucklingMat = groupTag + 6
-        ops.uniaxialMaterial('Elastic', bucklingMat, bucklingK)
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # BRB Material
-        Q235 = groupTag + 7
+        Q235 = groupTag + 1
         Q235_fy = 309.57 * UNIT.mpa
+        Q235_fu = 476.9 * UNIT.mpa
         Q235_Es = 176.7 * UNIT.gpa
-        ops.uniaxialMaterial('Steel02', Q235, Q235_fy, Q235_Es, 0.01, 18, 0.925, 0.15)
+        Q235_Esh = 0.01 * Q235_Es
+        Q235_esh = 1.5 * (Q235_fy / Q235_Es)
+        Q235_eult  = 0.1
+        # ops.uniaxialMaterial('Steel02', Q235, Q235_fy, Q235_Es, 0.01, 18, 0.925, 0.15)
         
+        GABuck_lsr = 6.0
+        GABuck_beta = 1.0
+        GABuck_r = 0.0
+        GABuck_gamma = 0.5
+        ops.uniaxialMaterial(
+            'ReinforcingSteel', Q235, Q235_fy, Q235_fu, Q235_Es, Q235_Esh, Q235_esh, Q235_eult,
+            '-GABuck', GABuck_lsr, GABuck_beta, GABuck_r, GABuck_gamma)
+
+        # 屈曲材料
+        bucklingMat = groupTag + 2
+        ops.uniaxialMaterial('Elastic', bucklingMat, bucklingK)
+        
+        # 约束材料
+        fixMat = groupTag + 3
+        freeMat = groupTag + 4
+        ops.uniaxialMaterial('Elastic', fixMat, self.Ubig)
+        ops.uniaxialMaterial('Elastic', freeMat, self.Usmall)
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        " # ===== < 方法 1: HookGap - Elastic > ===== #"
+        # # 间隙材料
+        # gapMat = groupTag + 10 + 1
+        # ops.uniaxialMaterial("HookGap", gapMat, Q235_Es, -gap, gap) # tag     E    gap_p   gap_n
+        
+        # # 摩擦材料
+        # slipMat = groupTag + 10 + 2
+        # ops.uniaxialMaterial('Elastic', slipMat, gapK)
+        # # 并联材料：gap + slip
+        # GapModel = groupTag + 10 + 3
+        # ops.uniaxialMaterial('Parallel', GapModel, gapMat, slipMat)
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        " # ===== < 方法 2: Elastic - ElasticPPGap > ===== #"
+        # # 摩擦刚度
+        # slipMat = groupTag + 10 + 1
+        # ops.uniaxialMaterial('Elastic', slipMat, gapK)
+        # # 间隙位移限制刚度
+        # gapLimitMat_1 = groupTag + 10 + 2
+        # gapLimitMat_2 = groupTag + 10 + 3
+        # ops.uniaxialMaterial("ElasticPPGap", gapLimitMat_1, Q235_Es, Q235_fy, gap)
+        # ops.uniaxialMaterial("ElasticPPGap", gapLimitMat_2, Q235_Es, -Q235_fy, -gap)
+        # # 并联材料：gap + slip
+        # GapModel = groupTag + 10 + 4
+        # ops.uniaxialMaterial('Parallel', GapModel, slipMat, gapLimitMat_1, gapLimitMat_2)
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        " # ===== < 方法 3: ElasticPPGap > ===== #"
+        # 摩擦刚度
+        slipMat_1 = groupTag + 10 + 1
+        slipMat_2 = groupTag + 10 + 2
+        ops.uniaxialMaterial("ElasticPPGap", slipMat_1, gapK, self.Ubig, gap/200.)
+        ops.uniaxialMaterial("ElasticPPGap", slipMat_2, bucklingK, -self.Ubig, -gap/200.)
+        # 间隙位移限制刚度
+        gapLimitMat_1 = groupTag + 10 + 3
+        gapLimitMat_2 = groupTag + 10 + 4
+        ops.uniaxialMaterial("ElasticPPGap", gapLimitMat_1, Q235_Es, self.Ubig, gap)
+        ops.uniaxialMaterial("ElasticPPGap", gapLimitMat_2, bucklingK, -self.Ubig, -gap)
+        # 并联材料：gap + slip
+        GapModel = groupTag + 10 + 5
+        ops.uniaxialMaterial('Parallel', GapModel, slipMat_1, slipMat_2, gapLimitMat_1, gapLimitMat_2)
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # BRB section
         secBRB = groupTag + 1
-        ops.section('fiberSec', secBRB, '-GJ', 1000000)
+        ops.section('fiberSec', secBRB, '-GJ', 3.153628770231478)
         ops.patch('rect ', Q235, 5, 10, -10./2. * UNIT.mm, -101.67/2. * UNIT.mm, 10./2. * UNIT.mm, 101.67/2. * UNIT.mm)
         
         secLink = groupTag + 2
-        ops.section('fiberSec', secLink, '-GJ', 1000000)
+        ops.section('fiberSec', secLink, '-GJ', 6.515607347333899)
         ops.patch('rect ', Q235, 5, 10, -10./2 * UNIT.mm, -200./2 * UNIT.mm, 10./2 * UNIT.mm, 200./2 * UNIT.mm)
         
         # BRB integration
@@ -322,7 +369,7 @@ class TwoPierModelTEST:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 零长单元方向材料分配
         dirs = [1, 2, 3, 4, 5, 6]
-        bucklingGap_mats = [GapModel, fixMat, fixMat, fixMat, bucklingMat, bucklingMat]
+        bucklingGap_mats = [GapModel, fixMat, fixMat, fixMat, fixMat, fixMat]
         buckling_mats = [fixMat, fixMat, fixMat, fixMat, bucklingMat, bucklingMat]
         '这个压缩方向的屈曲是真的忘记了，真没招了，就先这样吧'
         
@@ -332,20 +379,26 @@ class TwoPierModelTEST:
         transfTag = self.MCTs.auto_geomTransf(node_i, node_j)  # 单元坐标转换标签
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 连接段面接
+        area_link = 10. * UNIT.mm * 200. * UNIT.mm
+        E_link = 200. * UNIT.gpa # 连接段弹性模量
+        G_link = 80. * UNIT.gpa # 连接段剪切模量
         # 单元
         # I 端
-        ops.element('dispBeamColumn', I_link_1, *(node_i, I_bucklingGap_i), transfTag, npLink)
+        ops.element('elasticBeamColumn', I_link_1, *(node_i, I_bucklingGap_i), E_link, G_link, area_link, self.Ubig, self.Ubig, self.Ubig, transfTag)
         ops.element('zeroLength', I_bucklingGap, *(I_bucklingGap_i, I_bucklingGap_j), '-mat', *bucklingGap_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # buckling + gap
-        ops.element('dispBeamColumn', I_link_2, *(I_bucklingGap_j, I_buckling_i), transfTag, npLink)
+        ops.element('elasticBeamColumn', I_link_2, *(I_bucklingGap_j, I_buckling_i), E_link, G_link, area_link, self.Ubig, self.Ubig, self.Ubig, transfTag)
+        
         # # CORE
         ops.element('zeroLength', I_buckling, *(I_buckling_i, I_buckling_j), '-mat', *buckling_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # buckling
         ops.element('dispBeamColumn', coreEle, *(I_buckling_j, J_buckling_i), transfTag, npBRB)
         ops.element('zeroLength', J_buckling, *(J_buckling_i, J_buckling_j), '-mat', *buckling_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # buckling
+        
         # # J 端
-        ops.element('dispBeamColumn', J_link_1, *(J_buckling_j, J_bucklingGap_i), transfTag, npLink)
+        ops.element('elasticBeamColumn', J_link_1, *(J_buckling_j, J_bucklingGap_i), E_link, G_link, area_link, self.Ubig, self.Ubig, self.Ubig, transfTag)
         ops.element('zeroLength', J_bucklingGap, *(J_bucklingGap_i, J_bucklingGap_j), '-mat', *bucklingGap_mats, '-dir', *dirs, '-orient', *vecx, *vecyp) # buckling + gap
-        ops.element('dispBeamColumn', J_link_2, *(J_bucklingGap_j, node_j), transfTag, npLink)
-
+        ops.element('elasticBeamColumn', J_link_2, *(J_bucklingGap_j, node_j), E_link, G_link, area_link, self.Ubig, self.Ubig, self.Ubig, transfTag)
+        
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         return coreEle
     
