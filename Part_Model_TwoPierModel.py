@@ -81,6 +81,14 @@ class TwoPierModelTEST:
         groupTag: 组标签
         """
         
+        if core_ratio >=1:
+            raise ValueError("Core ratio should be less than 1.")
+        elif core_ratio <= 0:
+            raise ValueError("Core ratio should be greater than 0.")
+        
+        if core_area <= 0:
+            raise ValueError("Core area should be greater than 0.")
+        
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # BRB 材料数据
         Q235_fy = 235 * UNIT.mpa # Q235屈服强度
@@ -211,9 +219,9 @@ class TwoPierModelTEST:
         """
         
         if core_ratio >=1:
-            ValueError("Core ratio should be less than 1.")
+            raise ValueError("Core ratio should be less than 1.")
         elif core_ratio <= 0:
-            ValueError("Core ratio should be greater than 0.")
+            raise ValueError("Core ratio should be greater than 0.")
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 节点坐标
@@ -271,15 +279,15 @@ class TwoPierModelTEST:
         Q235_Esh = 0.01 * Q235_Es
         Q235_esh = 1.5 * (Q235_fy / Q235_Es)
         Q235_eult  = 0.1
-        # ops.uniaxialMaterial('Steel02', Q235, Q235_fy, Q235_Es, 0.01, 18, 0.925, 0.15)
+        ops.uniaxialMaterial('Steel02', Q235, Q235_fy, Q235_Es, 0.01, 18, 0.925, 0.15)
         
         GABuck_lsr = 6.0
         GABuck_beta = 1.0
         GABuck_r = 0.0
         GABuck_gamma = 0.5
-        ops.uniaxialMaterial(
-            'ReinforcingSteel', Q235, Q235_fy, Q235_fu, Q235_Es, Q235_Esh, Q235_esh, Q235_eult,
-            '-GABuck', GABuck_lsr, GABuck_beta, GABuck_r, GABuck_gamma)
+        # ops.uniaxialMaterial(
+        #     'ReinforcingSteel', Q235, Q235_fy, Q235_fu, Q235_Es, Q235_Esh, Q235_esh, Q235_eult,
+        #     '-GABuck', GABuck_lsr, GABuck_beta, GABuck_r, GABuck_gamma)
 
         # 屈曲材料
         bucklingMat = groupTag + 2
@@ -371,7 +379,6 @@ class TwoPierModelTEST:
         dirs = [1, 2, 3, 4, 5, 6]
         bucklingGap_mats = [GapModel, fixMat, fixMat, fixMat, fixMat, fixMat]
         buckling_mats = [fixMat, fixMat, fixMat, fixMat, bucklingMat, bucklingMat]
-        '这个压缩方向的屈曲是真的忘记了，真没招了，就先这样吧'
         
         # 零长单元 坐标转换
         vecx = dir_vector.tolist()  # 局部x -> 整体方向

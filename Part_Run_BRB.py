@@ -48,6 +48,7 @@ cycle_mode = True
 # 工况列表
 CASE_LIST = [
     {'ROOT_PATH': root_file,'CORE_RATIO': 0.43821, 'GAP': 0.02, 'GAP_K': 1.8e4, 'BUCKLING_K': 1.e4, 'CYCLE_MODE': cycle_mode}
+    # {'ROOT_PATH': root_file,'CORE_RATIO': 0.43821, 'GAP': 0.02, 'GAP_K': 1.8e4, 'BUCKLING_K': 1.e4, 'CYCLE_MODE': False}
     ]
 
 # 是否启用并行计算
