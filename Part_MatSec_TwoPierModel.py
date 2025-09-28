@@ -11,7 +11,7 @@
 # ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
 """
 
-
+import os
 import sys
 import rich
 from math import pi
@@ -323,4 +323,33 @@ class TwoPierModelSection:
 # --------------------------------------------------
 """
 if __name__ == "__main__":
-    pass
+    
+    # 模型参数路径
+    params_path = './OutModel'
+    os.makedirs(params_path, exist_ok=True)
+    
+    # 定义模型空间
+    ops.wipe()
+    ops.model('basic', '-ndm', 3, '-ndf', 6)
+    
+    # 盖梁截面 盖梁材料 编号
+    bent_cap_section_tags = {
+        'section_tag': 100,  # 截面
+        'cover_tag': 1,  # 材料-保护层
+        'core_tag': 2,  # 材料-核心
+        'bar_tag': 3,  # 材料-钢筋
+        'bar_max_tag': 4,  # 材料-钢筋最大应变限制
+        'info': True
+        }
+    BentCapProps = TwoPierModelSection.bent_cap_sec(params_path, **bent_cap_section_tags)  # 创建盖梁纤维截面，并获取截面参数
+    
+    # 墩柱截面 墩柱材料 编号
+    pier_section_tags = {
+        'section_tag': 200,  # 截面
+        'cover_tag': 5,  # 材料-保护层
+        'core_tag': 6,  # 材料-核心
+        'bar_tag': 7,  # 材料-钢筋
+        'bar_max_tag': 8,  # 材料-钢筋最大应变限制
+        'info': True
+        }
+    PierProps = TwoPierModelSection.pier_sec(params_path, **pier_section_tags)  # 创建墩柱纤维截面，并获取截面参数
