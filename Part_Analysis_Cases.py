@@ -326,23 +326,23 @@ def CASE_MODEL_BRB(
                 0.052, -0.052,
                 0.056, -0.056,
                 0.056, -0.056,
-                0.056, -0.056,
-                0.060, -0.060,
-                0.060, -0.060,
-                0.060, -0.060,
-                0.064, -0.064,
-                0.064, -0.064,
-                0.064, -0.064,
-                0.
-            ]) * UNIT.m
-        disp_path_break = np.array([
-                0.,
                 # 0.056, -0.056,
                 # 0.060, -0.060,
                 # 0.060, -0.060,
                 # 0.060, -0.060,
                 # 0.064, -0.064,
                 # 0.064, -0.064,
+                # 0.064, -0.064,
+                0.
+            ]) * UNIT.m
+        disp_path_break = np.array([
+                0.,
+                0.056, -0.056,
+                0.060, -0.060,
+                0.060, -0.060,
+                0.060, -0.060,
+                0.064, -0.064,
+                0.064, -0.064,
                 0.064, -0.064,
                 0.
             ]) * UNIT.m
@@ -354,7 +354,7 @@ def CASE_MODEL_BRB(
         
         # 位移路径
         disp_path = 0.064 * UNIT.m
-        # disp_path_break = 0.064 * UNIT.m
+        disp_path_break = disp_path
     
     # 创建工况路径
     case_path = os.path.join(ROOT_PATH, case_file_name)
@@ -362,7 +362,8 @@ def CASE_MODEL_BRB(
     # 设置数据库文件夹
     opst.post.set_odb_path(case_path)
 
-    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"    # 实例化模型
+    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    # 实例化模型
     Model = TwoPierModelTEST()
 
     # 模型参数
@@ -427,57 +428,32 @@ def CASE_MODEL_BRB(
         RESP_ODB=ODB
         )
     
-    '删除出单元对于复杂模型太难收敛了，opstool对删除单元的数据保存(ZeroLengthSection)支持也不够完善'
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-    # # 固定分析
-    # ops.loadConst('-time', 0.0)
-
-    # # 清除分析
-    # ops.wipeAnalysis()
-    # # 重新定义分析
-    # ops.system('BandGeneral')  # 求解器类型，BandGeneral适用于带状矩阵，如梁柱结构
-    # ops.constraints('Transformation')  # 约束处理方法，Transformation，适用于大多数问题
-    # ops.numberer('RCM')  # 节点编号方法，RCM (Reverse Cuthill-McKee)算法，可以减少带宽
-    # ops.test('NormDispIncr', 1.0e-12, 15, 3)  # 收敛测试:位移增量范数,容差1.0e-12,最大迭代数15
-    # ops.algorithm('Newton')  # 解算法，Newton-Raphson法，适用于大多数非线性问题
-    # # ops.integrator('LoadControl', 1)  # Nsteps与步长的乘积一定要为1，代表施加一倍荷载，乘积为2代表施加两倍荷载
-    # ops.integrator("DisplacementControl", ctrl_node, 2, 1)
-    # ops.analysis('Static')  # 分析模式：Static，Transient。（静态，动态）
-    
+    # 固定分析
+    ops.loadConst('-time', 0.0)
     # 删除BRB单元
-    # ops.remove('ele', ModelProps.KeyEle['BRB']) # 删除单元
-    # # ops.remove('ele', 4001) # 删除单元
-    # # ops.remove('ele', 4002) # 删除单元
-    # # ops.remove('ele', 4003) # 删除单元
-    # # ops.remove('ele', 4004) # 删除单元
-    # # ops.remove('ele', 4005) # 删除单元
-    # # ops.remove('ele', 4006) # 删除单元
-    # # ops.remove('ele', 4007) # 删除单元
-    # # ops.remove('ele', 4008) # 删除单元
-    # # ops.remove('ele', 4009) # 删除单元
-    # # opst.pre.remove_void_nodes()
+    ops.remove('ele', ModelProps.KeyEle['BRB']) # 删除单元
     
-    # 分析一步
-    # ok = ops.analyze(1)
-    # print(f'ok: {ok}')
-    # ODB.fetch_response_step()
-    
-    # ops.loadConst('-time', 0.0)
-    
-    # # 执行后续分析
-    # disp_break, load_break = ATs.STATIC(
-    #     filepath=case_path,
-    #     pattern=static_pattern,
-    #     ctrl_node=ctrl_node,
-    #     protocol=disp_path_break,
-    #     incr=0.001,
-    #     direction=2,
-    #     RESP_ODB=ODB
-    #     )
+    # 控制荷载工况
+    remove_pattern = 300
+    ops.pattern("Plain", remove_pattern, ts)
+    ops.load(ctrl_node, 0.0, F, 0.0, 0.0, 0.0, 0.0)  # 节点荷载
+
+    # 执行后续分析
+    disp_break, load_break = ATs.STATIC(
+        filepath=case_path,
+        pattern=remove_pattern,
+        ctrl_node=ctrl_node,
+        protocol=disp_path_break,
+        incr=0.001,
+        direction=2,
+        RESP_ODB=ODB
+        )
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 保存数据库
     ODB.save_response(zlib=True)
+    '''opstool暂不支持纤维截面的相关单元的实时更新，等待后续修复'''
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 损伤判断
@@ -496,8 +472,8 @@ def CASE_MODEL_BRB(
     plt.title(f'{ModelProps.Name} Displacement-Load Curve')
 
     plt.plot(test_data_BRB['mm'], test_data_BRB['N'], linewidth=0.8, label='TEST', zorder=2) # 实验数据
-    plt.plot(disp, load, alpha=1, linewidth=0.8, label='FEM', zorder=3) # FEM
-    # plt.plot(disp_break, load_break, alpha=1, linewidth=0.8, label='FEM', zorder=3) # FEM
+    plt.plot(disp, load, alpha=1, linewidth=0.8, color='#FF9800', label='FEM', zorder=3) # FEM
+    plt.plot(disp_break, load_break + load[-1], alpha=1, linewidth=0.8, color='#E91E63', label='FEM-break', zorder=3) # FEM
     
     plt.xlabel('Displacement (m)')
     plt.ylabel('Load (kN)')
