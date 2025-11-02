@@ -37,8 +37,8 @@ root_file = f'./OutData'
 
 # 工况列表
 CASE_LIST = [
-    {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': False,},
-    # {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': True,},
+    # {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': False,},
+    {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': True,},
 ]
 
 # 是否启用并行计算

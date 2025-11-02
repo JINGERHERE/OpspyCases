@@ -1912,14 +1912,23 @@ class RockPierModelTEST:
 
     def rock_start(self, odb_tag: Union[str, int]):
         
+        """
+        不管用什么判断，push与cycle分析所得的摇摆点不一样
+        并且，cycle所得的摇摆点，绘制纤维截面的应力图时，看不到应力为0的纤维（可能是因为摇摆点对应的位移为负数）
+        """
+        
         # 导入数据
         ODB_ele_sec = opst.post.get_element_responses(odb_tag=odb_tag, ele_type="FiberSection", print_info=False)
         
-        # 积分点
+        # 判断方式 1： 节段底部单元 - 混凝土部分
         ele_sec_point = 5
-        # 单元号
         ele_tag_pier_1 = self.model_props.KeyEle['pier_1_base_seg_ele']
         ele_tag_pier_2 = self.model_props.KeyEle['pier_2_base_seg_ele']
+        
+        # 判断方式 2： 零长单元 - 接触面模拟单元
+        # ele_sec_point = 1
+        # ele_tag_pier_1 = self.model_props.KeyEle['Pier_1_ENT_sec']
+        # ele_tag_pier_2 = self.model_props.KeyEle['Pier_2_ENT_sec']
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 基于 截面应力 筛选摇摆点
@@ -1961,8 +1970,8 @@ class RockPierModelTEST:
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 检索0
-        rock_mask_pier_1 = (Stresses_pier_1 == 0)
-        rock_mask_pier_2 = (Stresses_pier_2 == 0)
+        rock_mask_pier_1 = (Stresses_pier_1 == 0.)
+        rock_mask_pier_2 = (Stresses_pier_2 == 0.)
         
         # 绘图
         plt.close('all')
