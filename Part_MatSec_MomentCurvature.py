@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 from opstool.pre import section
 from inspect import currentframe as curt_fra
 from typing import Literal, TypeAlias, Union, Callable, cast
+from pathlib import Path
+import pickle
 
 from script import UNIT, PVs
 from script.pre import MatTools
@@ -54,7 +56,7 @@ class MPhiSection:
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     @staticmethod
     def Section_Example_01(
-            filepath: str,
+            filepath: Union['str', Path],
             section_tag: int,
             cover_tag: int, core_tag: int,
             bar_tag: int, bar_max_tag: int,
@@ -147,7 +149,7 @@ class MPhiSection:
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 弯矩曲率分析所需的轴压力
-        P = 0.1 * (sec_props.A * abs(cover_params.fc))
+        P = -0.1 * (sec_props.A * abs(cover_params.fc))
         # 输出参数：截面属性，保护层数据，核心数据，钢筋数据
         PROPS = PVs.SEC_PROPS(
             Name=my_name,
@@ -172,7 +174,7 @@ class MPhiSection:
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     @staticmethod
     def Section_Example_02(
-            filepath: str,
+            filepath: Union['str', Path],
             section_tag: int,
             cover_tag: int, core_tag: int,
             bar_tag: int, bar_max_tag: int,
@@ -289,7 +291,7 @@ class MPhiSection:
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 弯矩曲率分析所需的轴压力
-        P = 0.1 * (sec_props.A * abs(cover_params.fc))
+        P = -0.1 * (sec_props.A * abs(cover_params.fc))
 
         # 输出参数：截面属性，保护层数据，核心数据，钢筋数据
         PROPS = PVs.SEC_PROPS(
@@ -315,7 +317,7 @@ class MPhiSection:
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     @staticmethod
     def Section_Example_03(
-            filepath: str,
+            filepath: Union['str', Path],
             section_tag: int,
             cover_tag: int, core_tag: int,
             bar_tag: int, bar_max_tag: int,
@@ -406,13 +408,17 @@ class MPhiSection:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 定义截面（ops命令）
         SEC.centring()
-        SEC.view(fill=True, show_legend=True)
         SEC.to_opspy_cmds(secTag=section_tag, GJ=cover_params.G * sec_props.J)
-        plt.savefig(f'{filepath}/{my_name}_mash.png', dpi=300, bbox_inches='tight')
+        
+        # SEC.view(fill=True, show_legend=True)
+        # plt.savefig(f'{filepath}/{my_name}_mash.png', dpi=300, bbox_inches='tight')
+
+        with open(f"{filepath}/{my_name}_section_code.pkl", "wb") as f:
+            pickle.dump(SEC, f)
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 弯矩曲率分析所需的轴压力
-        P = 0.1 * (sec_props.A * abs(cover_params.fc))
+        P = -0.1 * (sec_props.A * abs(cover_params.fc))
 
         # 输出参数：截面属性，保护层数据，核心数据，钢筋数据
         PROPS = PVs.SEC_PROPS(
@@ -438,7 +444,7 @@ class MPhiSection:
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     @staticmethod
     def Section_Example_04(
-            filepath: str,
+            filepath: Union['str', Path],
             section_tag: int,
             cover_tag: int, core_tag: int,
             bar_tag: int, bar_max_tag: int,
@@ -465,7 +471,6 @@ class MPhiSection:
             raise RuntimeError("Get Section Name Error")
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 材料控制
         # 材料控制
         concrete = cast(PVs.concrete_input, "C40")
         steel = cast(PVs.bar_input, "HRB400")
@@ -546,13 +551,17 @@ class MPhiSection:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 定义截面（ops命令）
         SEC.centring()
-        SEC.view(fill=True, show_legend=True)
         SEC.to_opspy_cmds(secTag=section_tag, GJ=cover_params.G * sec_props.J)
-        plt.savefig(f'{filepath}/{my_name}_mash.png', dpi=300, bbox_inches='tight')
+        
+        # SEC.view(fill=True, show_legend=True)
+        # plt.savefig(f'{filepath}/{my_name}_mash.png', dpi=300, bbox_inches='tight')
+
+        with open(f"{filepath}/{my_name}_section_code.pkl", "wb") as f:
+            pickle.dump(SEC, f)
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 弯矩曲率分析所需的轴压力
-        P = 0.1 * (sec_props.A * abs(cover_params.fc))
+        P = -0.1 * (sec_props.A * abs(cover_params.fc))
 
         # 输出参数：截面属性，保护层数据，核心数据，钢筋数据
         PROPS = PVs.SEC_PROPS(
