@@ -3,7 +3,7 @@
 
 """
 # ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-@File    ：Case_MomentCurvature.py
+@File    ：RUN_Case.py
 @Date    ：2025/7/11 21:08
 @IDE     ：PyCharm
 @Author  ：Wang Jing
@@ -33,7 +33,7 @@ from rich.progress import Progress, BarColumn, TimeElapsedColumn
 
 """
 # --------------------------------------------------
-# ========== < Case_MomentCurvature > ==========
+# ========== < RUN_Case > ==========
 # --------------------------------------------------
 """
 
