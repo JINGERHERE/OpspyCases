@@ -13,6 +13,7 @@
 
 import os
 import time
+import numpy as np
 from typing import Callable, Any
 import opstool as opst
 import openseespy.opensees as ops
@@ -36,17 +37,11 @@ from rich.progress import Progress, BarColumn, TimeElapsedColumn
 # --------------------------------------------------
 """
 
-def ANALYSIS_CASE(sec: Callable[..., PVs.SEC_PROPS], direction: str):
+def ANALYSIS_CASE(case: dict):
 
-    """
-    工况函数：
-        输入：截面， 对应的分析工况 // 需要输入构造截面的函数，且该函数的输出类型为 PVs.SecProps
-        执行：输入截面 对应方向的 弯矩曲率分析
-        返回：-
-    """
-
-    # 实例化模型
-    section_model = SectionModel('./OutData')
+    # 模型空间
+    ops.wipe()
+    ops.model('basic', '-ndm', 3, '-ndf', 6)
 
     # 截面材料标签汇总
     secTag_props = {
@@ -58,38 +53,31 @@ def ANALYSIS_CASE(sec: Callable[..., PVs.SEC_PROPS], direction: str):
         'info': False
     }
     
-    # 创建截面
-    SecProps = section_model.create_section(func=sec, axis=direction, **secTag_props)
+    root_path = './OutData'
     
-    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-    # 弯矩曲率分析
-    MC = opst.anlys.MomentCurvature(sec_tag=SecProps.SectionTag, axial_force=-SecProps.P)
-    MC.analyze(
-        axis=direction,
-        max_phi=0.2 / UNIT.m, incr_phi=1e-4,
-        limit_peak_ratio=0.8,
-        smart_analyze=True, debug=False
+    # 截面
+    section_props = case['sec_func'](root_path, **secTag_props)
+    
+    # 模型
+    section_model = SectionModel(
+        filepath=root_path,
+        sec_props=section_props,
+        ctrl_dir=case['dir']
         )
-
-    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-    # 显示纤维截面 MomentCurvature默认单元号为1
-    opst.pre.section.vis_fiber_sec_real(
-        ele_tag=1, show_matTag=False,
-        highlight_matTag=SecProps.SteelTag, highlight_color="r",
+    # 分析
+    section_model.run_analysis(
+        targets_phi=np.array(0.2), incr_phi=1.e-4,
+        ds_info=False, ds_out=False
         )
-    # plt.savefig(f'{model.subdir}/{SecProps['Name']}_real_fiber.png', dpi=300, bbox_inches='tight')
-    plt.savefig(f'{section_model.secPath}/{SecProps.Name}_real_fiber.png', dpi=300, bbox_inches='tight')
-
-    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-    # 后处理：截面损伤
-    section_model.determine_damage(MC, bilinear=True, info=True)  # 损伤判断，开启等效双折线计算
-    # 后处理：绘图
-    section_model.section_rainbow(step='DS5', style='all')  # 绘制 对应步骤 纤维截面云图：应力，应变，材料
+    # 后处理
+    section_model.get_Phi_M(plot_out=True, to_excel=True)
+    section_model.equivalent_bilinear(plot_out=True, data_out=True, info=False)
+    section_model.plot_strain_state(map_style='coolwarm', step='BREAK', plot_out=True)
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 打印当前截面完成信息
     color = random_color()
-    rich.print(f'[bold {color}] :tada: DONE: {SecProps.Name} Analyze Successfully ! :tada: [/bold {color}]')
+    rich.print(f'[bold {color}] :tada: DONE: {section_props.Name} Analyze Successfully ! :tada: [/bold {color}]')
     rich.print(f'[bold {color}] Prepare the next >>>>> [/bold {color}]\n')
 
 
@@ -102,11 +90,11 @@ if __name__ == "__main__":
 
     # 截面列表
     CASE_LIST = [
-        (MPhiSection.Section_Example_01, "y"),
-        (MPhiSection.Section_Example_02, "y"),
-        (MPhiSection.Section_Example_02, "z"),
-        (MPhiSection.Section_Example_03, "y"),
-        (MPhiSection.Section_Example_04, "y"),
+        {'sec_func': MPhiSection.Section_Example_01, 'dir': "y"},
+        {'sec_func': MPhiSection.Section_Example_02, 'dir': "y"},
+        {'sec_func': MPhiSection.Section_Example_02, 'dir': "z"},
+        {'sec_func': MPhiSection.Section_Example_03, 'dir': "y"},
+        {'sec_func': MPhiSection.Section_Example_04, 'dir': "y"},
         ]
 
     # 是否启用并行计算
@@ -126,13 +114,13 @@ if __name__ == "__main__":
 
         # 并行计算
         Parallel(n_jobs=-1)(
-            delayed(ANALYSIS_CASE)(sec_case, dir_case) for sec_case, dir_case in CASE_LIST
+            delayed(ANALYSIS_CASE)(case) for case in CASE_LIST
         )
 
     else:
         '''正常计算：for循环'''
-        for sec_case, dir_case in CASE_LIST:
-            ANALYSIS_CASE(sec_case, dir_case)
+        for case in CASE_LIST:
+            ANALYSIS_CASE(case)
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 打印完成信息
