@@ -19,6 +19,9 @@ wheels/
 _OPSTOOL_ODB
 .RAW_DATA
 .LEARNING
+*zarr
+0
+*.0
 
 # Client Repository
 script

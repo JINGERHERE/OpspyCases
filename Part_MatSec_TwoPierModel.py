@@ -19,7 +19,7 @@ import openseespy.opensees as ops
 import matplotlib.pyplot as plt
 from opstool.pre import section
 from collections import namedtuple
-from inspect import currentframe as curt_fra
+import pickle
 
 import script
 from script import UNIT, PVs
@@ -151,9 +151,13 @@ class TwoPierModelSection:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 定义截面（ops命令）
         SEC.centring()
-        SEC.view(fill=True, show_legend=True)
         SEC.to_opspy_cmds(secTag=section_tag, GJ=cover_params.G * sec_props.J)
+
+        SEC.view(fill=True, show_legend=True)
         plt.savefig(f'{filepath}/{my_name}_mash.png', dpi=300, bbox_inches='tight')
+
+        with open(f"{filepath}/{my_name}_section_code.pkl", "wb") as f:
+            pickle.dump(SEC, f)
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 截面材料属性转换为字典
@@ -162,7 +166,7 @@ class TwoPierModelSection:
         # bar_dict = bar.to_dict()
 
         # 弯矩曲率分析所需的轴压力
-        P = 0.1 * (sec_props.A * abs(cover_params.fc))
+        P = -0.1 * (sec_props.A * abs(cover_params.fc))
         # 输出参数：截面属性，保护层数据，核心数据，钢筋数据
         PROPS = PVs.SEC_PROPS(
             Name=my_name,
@@ -284,9 +288,13 @@ class TwoPierModelSection:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 定义截面（ops命令）
         SEC.centring()
-        SEC.view(fill=True, show_legend=True)
         SEC.to_opspy_cmds(secTag=section_tag, GJ=cover_params.G * sec_props.J)
+
+        SEC.view(fill=True, show_legend=True)
         plt.savefig(f'{filepath}/{my_name}_mash.png', dpi=300, bbox_inches='tight')
+
+        with open(f"{filepath}/{my_name}_section_code.pkl", "wb") as f:
+            pickle.dump(SEC, f)
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 截面材料属性转换为字典

@@ -80,68 +80,14 @@ def CASE_MODEL(
         # case_file_name = f'CYCLE_Ke={Ke:.3e}' 
         
         # 位移路径
-        disp_path = np.array([
-                0.,
-                0.002, -0.002,
-                0.002, -0.002,
-                0.002, -0.002,
-                0.004, -0.004,
-                0.004, -0.004,
-                0.004, -0.004,
-                0.006, -0.006,
-                0.006, -0.006,
-                0.006, -0.006,
-                0.008, -0.008,
-                0.008, -0.008,
-                0.008, -0.008,
-                0.010, -0.010,
-                0.010, -0.010,
-                0.010, -0.010,
-                0.012, -0.012,
-                0.012, -0.012,
-                0.012, -0.012,
-                0.016, -0.016,
-                0.016, -0.016,
-                0.016, -0.016,
-                0.020, -0.020,
-                0.020, -0.020,
-                0.020, -0.020,
-                0.024, -0.024,
-                0.024, -0.024,
-                0.024, -0.024,
-                0.028, -0.028,
-                0.028, -0.028,
-                0.028, -0.028,
-                0.032, -0.032,
-                0.032, -0.032,
-                0.032, -0.032,
-                0.036, -0.036,
-                0.036, -0.036,
-                0.036, -0.036,
-                0.040, -0.040,
-                0.040, -0.040,
-                0.040, -0.040,
-                0.044, -0.044,
-                0.044, -0.044,
-                0.044, -0.044,
-                0.048, -0.048,
-                0.048, -0.048,
-                0.048, -0.048,
-                0.052, -0.052,
-                0.052, -0.052,
-                0.052, -0.052,
-                0.056, -0.056,
-                0.056, -0.056,
-                0.056, -0.056,
-                0.060, -0.060,
-                0.060, -0.060,
-                0.060, -0.060,
-                0.064, -0.064,
-                0.064, -0.064,
-                0.064, -0.064,
-                0.
-            ]) * UNIT.m
-        
+        disp_step_1 = np.arange(0.002, 0.012 + 0.002, 0.002) # 第一阶段 控制位移幅值
+        disp_step_2 = np.arange(0.016, 0.064 + 0.004, 0.004) # 第二节段 控制唯一幅值
+        disp_step = np.repeat(
+            np.concatenate((disp_step_1, disp_step_2)), # 合并
+            3 # 重复三次
+            )
+        disp_pairs = np.stack((disp_step, -disp_step), axis=1).flatten() # 控制位移成对，整理
+        disp_path = np.concatenate(([0.], disp_pairs, [0.])) * UNIT.m # 添加首尾
     else:
         # 工况文件夹命名
         case_file_name = f'PUSH'
@@ -157,7 +103,7 @@ def CASE_MODEL(
     opst.post.set_odb_path(case_path)
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"    # 实例化模型
-    Model = TwoPierModelTEST()
+    Model = TwoPierModelTEST(modelPath=case_path)
 
     # 模型参数
     params = {
@@ -166,7 +112,7 @@ def CASE_MODEL(
     }
 
     # 创建模型
-    ModelProps = Model.RCPier(case_path, **params)
+    ModelProps = Model.RCPier(**params)
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 时间序列
@@ -224,6 +170,10 @@ def CASE_MODEL(
     StrucDS.to_excel(f'{case_path}/{ModelProps.Name}_damage.xlsx', index=False)
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    # 关键部位的界面损伤状态
+    Model.plot_pier_sec_state(odb_tag=case_file_name)
+    
+    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 荷载-位移 曲线
     plt.close('all')
     plt.figure(figsize=(6, 4))
@@ -240,6 +190,14 @@ def CASE_MODEL(
     plt.legend(loc='lower right', bbox_to_anchor=(1, 0))
     # plt.show()
     plt.savefig(f'{case_path}/disp_load.png', dpi=300, bbox_inches='tight')
+    
+    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    # 导出 曲线
+    out_data = pd.DataFrame({
+        'Disp(m)': disp,
+        'Load(m)': load
+        })
+    out_data.to_excel(f'{case_path}/{ModelProps.Name}_disp_load.xlsx', index=True)
     
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 打印当前截面完成信息
@@ -274,67 +232,16 @@ def CASE_MODEL_BRB(
         # case_file_name = f'CYCLE_Ke={Ke:.3e}' 
         
         # 位移路径
-        disp_path = np.array([
-                0.,
-                0.002, -0.002,
-                0.002, -0.002,
-                0.002, -0.002,
-                0.004, -0.004,
-                0.004, -0.004,
-                0.004, -0.004,
-                0.006, -0.006,
-                0.006, -0.006,
-                0.006, -0.006,
-                0.008, -0.008,
-                0.008, -0.008,
-                0.008, -0.008,
-                0.010, -0.010,
-                0.010, -0.010,
-                0.010, -0.010,
-                0.012, -0.012,
-                0.012, -0.012,
-                0.012, -0.012,
-                0.016, -0.016,
-                0.016, -0.016,
-                0.016, -0.016,
-                0.020, -0.020,
-                0.020, -0.020,
-                0.020, -0.020,
-                0.024, -0.024,
-                0.024, -0.024,
-                0.024, -0.024,
-                0.028, -0.028,
-                0.028, -0.028,
-                0.028, -0.028,
-                0.032, -0.032,
-                0.032, -0.032,
-                0.032, -0.032,
-                0.036, -0.036,
-                0.036, -0.036,
-                0.036, -0.036,
-                0.040, -0.040,
-                0.040, -0.040,
-                0.040, -0.040,
-                0.044, -0.044,
-                0.044, -0.044,
-                0.044, -0.044,
-                0.048, -0.048,
-                0.048, -0.048,
-                0.048, -0.048,
-                0.052, -0.052,
-                0.052, -0.052,
-                0.052, -0.052,
-                0.056, -0.056,
-                0.056, -0.056,
-                # 0.056, -0.056,
-                # 0.060, -0.060,
-                # 0.060, -0.060,
-                # 0.060, -0.060,
-                # 0.064, -0.064,
-                # 0.064, -0.064,
-                # 0.064, -0.064,
-                0.
-            ]) * UNIT.m
+        disp_step_1 = np.arange(0.002, 0.012 + 0.002, 0.002) # 第一阶段 控制位移幅值
+        disp_step_2 = np.arange(0.016, 0.052 + 0.004, 0.004) # 第二节段 控制唯一幅值
+        disp_step = np.repeat(
+            np.concatenate((disp_step_1, disp_step_2)), # 合并
+            3 # 重复三次
+            )
+        disp_pairs = np.stack((disp_step, -disp_step), axis=1).flatten() # 控制位移成对，整理
+        disp_path = np.concatenate(([0.], disp_pairs, [0.056, -0.056, 0.056, -0.056, 0.])) * UNIT.m # 添加首尾
+        
+        # 破坏后的位移幅值
         disp_path_break = np.array([
                 0.,
                 0.056, -0.056,
@@ -353,8 +260,9 @@ def CASE_MODEL_BRB(
         # case_file_name = f'PUSH_Ke={Ke:.3e}'
         
         # 位移路径
-        disp_path = 0.064 * UNIT.m
-        disp_path_break = disp_path
+        '''issues? 只有正向时会报错'''
+        disp_path = np.array([0., 0.056, -0.056, 0.]) * UNIT.m # 仅正向时，不收敛
+        disp_path_break = np.array([0., 0.064, -0.064, 0.]) * UNIT.m # 仅正向时，不收敛
     
     # 创建工况路径
     case_path = os.path.join(ROOT_PATH, case_file_name)
@@ -364,7 +272,7 @@ def CASE_MODEL_BRB(
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 实例化模型
-    Model = TwoPierModelTEST()
+    Model = TwoPierModelTEST(modelPath=case_path)
 
     # 模型参数
     params = {
@@ -379,7 +287,7 @@ def CASE_MODEL_BRB(
     }
 
     # 创建模型
-    ModelProps = Model.RCPierBRB(case_path, **params)
+    ModelProps = Model.RCPierBRB(**params)
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # 时间序列
@@ -460,8 +368,12 @@ def CASE_MODEL_BRB(
     StrucDS.to_excel(f'{case_path}/{ModelProps.Name}_damage.xlsx', index=False)
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    # 关键部位的界面损伤状态
+    Model.plot_pier_sec_state(odb_tag=case_file_name)
+
+    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # BRB 响应
-    fig = Model.reasp_BRB(odb_tag=case_file_name)
+    fig = Model.resp_BRB(odb_tag=case_file_name)
     fig.savefig(f'{case_path}/BRB_reasp.png', dpi=300, bbox_inches='tight')
     
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
@@ -482,6 +394,14 @@ def CASE_MODEL_BRB(
     plt.legend(loc='lower right', bbox_to_anchor=(1, 0))
     # plt.show()
     plt.savefig(f'{case_path}/disp_load.png', dpi=300, bbox_inches='tight')
+    
+    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    # 导出 曲线
+    out_data = pd.DataFrame({
+        'Disp(m)': np.concatenate([disp, disp_break]),
+        'Load(m)': np.concatenate([load, load_break + load[-1]])
+        })
+    out_data.to_excel(f'{case_path}/{ModelProps.Name}_disp_load.xlsx', index=True)
     
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     # fig = opst.vis.plotly.plot_nodal_responses(odb_tag=case_file_name, defo_scale=2.0, slides=True)

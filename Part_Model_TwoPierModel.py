@@ -30,7 +30,7 @@ from inspect import currentframe as curt_fra
 from itertools import batched, product, pairwise
 
 from script.pre import NodeTools
-from script.base import random_color
+from script.base import random_color, rich_showwarning
 from script import UNIT, PVs, ModelCreateTools
 
 from Part_MatSec_TwoPierModel import TwoPierModelSection
@@ -38,7 +38,9 @@ from script.post import DamageStateTools
 
 from typing import NamedTuple
 from collections import namedtuple
+import pickle
 
+warnings.showwarning = rich_showwarning
 
 """
 # --------------------------------------------------
@@ -49,7 +51,9 @@ from collections import namedtuple
 
 class TwoPierModelTEST:
 
-    def __init__(self):
+    def __init__(self, modelPath: str):
+        
+        self.modelPath = modelPath
         
         # self.Ubig = 20000. * UNIT.gpa # 约束刚度
         # self.Usmall = 2.e-8 * UNIT.gpa # 释放刚度
@@ -59,9 +63,15 @@ class TwoPierModelTEST:
 
         self.model_props: PVs.MODEL_PROPS # 模型的输出属性
 
+        # 分析配置
+        self.ts = 1
+        ops.timeSeries("Linear", self.ts) # 创建时间序列：本实例仅供重力分析和静力分析
+
         # 结果数据
         self.node_resp: xr.DataArray # 节点响应数据
         self.ele_resp: xr.DataArray # 单元响应数据
+        
+
         
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def _set_BRB_lite(
@@ -412,7 +422,7 @@ class TwoPierModelTEST:
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def _set_pier(
         self,
-        modelPath: str,
+        # modelPath: str,
         Ke: float,
         info: bool
         ):
@@ -443,7 +453,7 @@ class TwoPierModelTEST:
             'bar_max_tag': 4,  # 材料-钢筋最大应变限制
             'info': info
             }
-        BentCapProps = TwoPierModelSection.bent_cap_sec(modelPath, **bent_cap_section_tags)  # 创建盖梁纤维截面，并获取截面参数
+        BentCapProps = TwoPierModelSection.bent_cap_sec(self.modelPath, **bent_cap_section_tags)  # 创建盖梁纤维截面，并获取截面参数
 
         # 墩柱截面 墩柱材料 编号
         pier_section_tags = {
@@ -454,7 +464,7 @@ class TwoPierModelTEST:
             'bar_max_tag': 8,  # 材料-钢筋最大应变限制
             'info': info
             }
-        PierProps = TwoPierModelSection.pier_sec(modelPath, **pier_section_tags)  # 创建墩柱纤维截面，并获取截面参数
+        PierProps = TwoPierModelSection.pier_sec(self.modelPath, **pier_section_tags)  # 创建墩柱纤维截面，并获取截面参数
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 单元积分点
@@ -644,7 +654,7 @@ class TwoPierModelTEST:
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def RCPier(
         self,
-        modelPath: str,
+        # modelPath: str,
         Ke: float = 1.,
         info: bool = True
         ) -> PVs.MODEL_PROPS:
@@ -678,7 +688,7 @@ class TwoPierModelTEST:
             location_damage,
             other_optional
             ) = self._set_pier(
-                modelPath=modelPath,
+                # modelPath=modelPath,
                 Ke=Ke,
                 info=info
                 )
@@ -691,10 +701,10 @@ class TwoPierModelTEST:
             show_ele_numbering=False,
             show_local_axes=False
             )
-        fig.write_html(f"{modelPath}/{my_name}.html", full_html=False, include_plotlyjs="cdn")
+        fig.write_html(f"{self.modelPath}/{my_name}.html", full_html=False, include_plotlyjs="cdn")
         
         # 打印模型到 json
-        ops.printModel("-JSON", "-file", f"{modelPath}/{my_name}.json")
+        ops.printModel("-JSON", "-file", f"{self.modelPath}/{my_name}.json")
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 返回数据
@@ -712,7 +722,7 @@ class TwoPierModelTEST:
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
     def RCPierBRB(
         self,
-        modelPath: str,
+        # modelPath: str,
         
         core_ratio: float,
         gap: Union[int, float],
@@ -756,7 +766,7 @@ class TwoPierModelTEST:
             location_damage,
             other_optional
             ) = self._set_pier(
-                modelPath=modelPath,
+                # modelPath=modelPath,
                 Ke=Ke,
                 info=info
                 )
@@ -790,10 +800,10 @@ class TwoPierModelTEST:
             show_ele_numbering=False,
             show_local_axes=False
             )
-        fig.write_html(f"{modelPath}/{my_name}.html", full_html=False, include_plotlyjs="cdn")
+        fig.write_html(f"{self.modelPath}/{my_name}.html", full_html=False, include_plotlyjs="cdn")
         
         # 打印模型到 json
-        ops.printModel("-JSON", "-file", f"{modelPath}/{my_name}.json")
+        ops.printModel("-JSON", "-file", f"{self.modelPath}/{my_name}.json")
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 返回数据
@@ -818,70 +828,166 @@ class TwoPierModelTEST:
         df_list = []
         for loc in self.model_props.LocationDamage:
             tool = DamageStateTools(resp_data=ODB_ele_sec, ele_tag=loc.eleTag, integ=loc.integ)
-            df = tool.determine_sec(mat_props=self.model_props.SectionMat['PierProps'], dupe=True, info=info)
+            df = tool.det_sec(mat_props=self.model_props.SectionMat['PierProps'], dupe=True, info=info)
             df['location'] = loc.location
             df_list.append(df)
         # 合并
         PierModelDS = pd.concat(df_list, ignore_index=False)
 
         # 整体结构判断
-        StructuralDS = DamageStateTools.determine_struc(PierModelDS, info=True)
+        self.StructuralDS = DamageStateTools.det_struc(PierModelDS, info=info)
         
-        return StructuralDS
+        return self.StructuralDS
 
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-    def reasp_fiber_sec(self, odb_tag: Union[str, int], ele_tag: int, integ: int, step: int):
+    def plot_pier_sec_state(
+        self,
+        odb_tag: Union[str, int],
+        # ele_tag: int, integ: int,
+        step: Optional[Union[str, int]] = 'DS5'
+        ):
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        step_map = {
+            'ds2': 'DS2',
+            'ds3': 'DS3',
+            'ds4': 'DS4',
+            'ds5': 'DS5',
+            'yield': 'DS2',
+            'broken': 'DS5',
+            'break': 'DS5',
+        }
+        
+        if isinstance(step, str):
+            try:
+                get_value = step_map[step.lower()]
+            except KeyError:
+                warnings.warn(f"Expected one of {list(step_map.keys())} or an integer string (int).", UserWarning)
+                warnings.warn(f"Section break strain state will be shown.", UserWarning)
+                step_index = int(self.StructuralDS[self.StructuralDS['DS'] == 'DS5'].index.item())
+            else:
+                step_index = int(self.StructuralDS[self.StructuralDS['DS'] == get_value].index.item())
+
+        elif isinstance(step, int):
+            step_index = step
+
+        else:
+            raise ValueError(
+                f"Invalid step string: {step}. Expected one of {list(step_map.keys())} or an integer string."
+                )
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        pier_sec_props = self.model_props.SectionMat['PierProps']
+        # 材料标签与值索引
+        cover_tag = pier_sec_props.CoverTag
+        core_tag = pier_sec_props.CoreTag
+        bar_tag = pier_sec_props.SteelTag
+        
+        cover_eps_thr = abs(pier_sec_props.CoverProps.eps_ultra)
+        core_eps_thr = abs(pier_sec_props.CoreProps.eps_ultra)
+        bar_eps_thr = abs(pier_sec_props.SteelProps.eps_ultra)
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 导入数据
         ODB_ele_sec = opst.post.get_element_responses(odb_tag=odb_tag, ele_type="FiberSection", print_info=False)
-        # 显示纤维应变云图
-        ys = ODB_ele_sec['ys'].sel(eleTags = ele_tag, secPoints = integ)
-        zs = ODB_ele_sec['zs'].sel(eleTags = ele_tag, secPoints = integ)
-        Strains = ODB_ele_sec['Strains'].sel(eleTags = ele_tag, secPoints = integ).isel(time = step)
-        Stresses = ODB_ele_sec['Stresses'].sel(eleTags = ele_tag, secPoints = integ).isel(time = step)
-        # 检索0
-        break_mask = (Stresses == 0)
-        # break_mask = (Strains == 0)
         
-        # 绘图
-        plt.close('all')
-        fig, ax = plt.subplots(figsize=(6, 4))
-        s = ax.scatter(
-            ys.where(~break_mask, drop=True), zs.where(~break_mask, drop=True), # drop=True 去掉不满足的数据点
-            c=Stresses.where(~break_mask, drop=True),
-            s=5,
-            cmap="rainbow",
-            zorder=2,
-        )
-        ax.scatter(
-            ys.where(break_mask, drop=True), zs.where(break_mask, drop=True),
-            c='#BDBDBD',
-            s=5,
-            label="Broken",
-            zorder=1,
-        )
-        # 坐标轴标签
-        ax.set_xlabel('local y')
-        ax.set_ylabel('local z')
+        with open(f"{self.modelPath}/{pier_sec_props.Name}_section_code.pkl", "rb") as f:
+            self.SEC = pickle.load(f)
         
-        # 保证数据单位 1:1
-        # ax.set_aspect('equal', adjustable='box')
-        ax.set_aspect('equal', adjustable='datalim') # 保持 figsize
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        def _ploter(ele_tag, integ):
         
-        # colorbar 
-        cbar = fig.colorbar(s, ax=ax, pad=0.02)
+            # 显示纤维应变云图
+            ys = ODB_ele_sec['ys'].sel(eleTags = ele_tag, secPoints = integ)
+            zs = ODB_ele_sec['zs'].sel(eleTags = ele_tag, secPoints = integ)
+            strain = ODB_ele_sec['Strains'].sel(eleTags = ele_tag, secPoints = integ).isel(time = step_index)
+            points_all = np.stack((ys.values, zs.values), axis=-1) # 截面纤维点的坐标 (包含nan数据)
+            '''issues///////////////////////////////////////////////////////////////////////////////////////////////////////'''
+            # 返回布尔索引：np.all(np.isfinite(points_all), axis=1) 得到无nan的points
+            points = points_all[np.all(np.isfinite(points_all), axis=1)] 
 
-        # 单独 legend
-        handles, labels = ax.get_legend_handles_labels()
-        fig.legend(
-            handles, labels,
-            loc='lower right',
-            bbox_to_anchor=(0.92, 0.01),  # 调整这个值可以移动 legend
-            framealpha=0.9)
+            plt.close('all')
+            fig, ax = plt.subplots(figsize=(6, 4))
+            ax, cbar = self.SEC.plot_response(
+                points=points,  # (num_fiber_points, 2)
+                response=strain.values,  # (num_fiber_points,)
+                mat_tag=(cover_tag, core_tag, bar_tag),
+                thresholds={
+                    cover_tag: (-cover_eps_thr, 0.),
+                    core_tag: (-core_eps_thr, 0.),
+                    bar_tag: (-bar_eps_thr, bar_eps_thr)
+                    },
+                cmap='coolwarm',
+                ax=ax,
+            )
+            fig.tight_layout(rect=(0, 0, 1, 1))
+            cbar.set_label("Strain", fontsize=12)
+            ax.set_title(f"Strain Distribution\n(Element {ele_tag})", fontsize=14)
+            ax.set_xlabel("Y", fontsize=12)
+            ax.set_ylabel("Z", fontsize=12)
+            cbar.mappable.set_clim(-0.15, 0.15)
+        
+            plt.savefig(f'{self.modelPath}/Element_{ele_tag}_Strain_Distribution.png', dpi=1280, bbox_inches='tight')
+    
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        _ploter(ele_tag=self.model_props.KeyEle['pier_1_top'], integ=1)
+        _ploter(ele_tag=self.model_props.KeyEle['pier_2_top'], integ=1)
+        _ploter(ele_tag=self.model_props.KeyEle['pier_1_base'], integ=5)
+        _ploter(ele_tag=self.model_props.KeyEle['pier_2_base'], integ=5)
+    
+    # "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+    # def resp_fiber_sec(self, odb_tag: Union[str, int], ele_tag: int, integ: int, step: int):
+    #     # 导入数据
+    #     ODB_ele_sec = opst.post.get_element_responses(odb_tag=odb_tag, ele_type="FiberSection", print_info=False)
+    #     # 显示纤维应变云图
+    #     ys = ODB_ele_sec['ys'].sel(eleTags = ele_tag, secPoints = integ)
+    #     zs = ODB_ele_sec['zs'].sel(eleTags = ele_tag, secPoints = integ)
+    #     Strains = ODB_ele_sec['Strains'].sel(eleTags = ele_tag, secPoints = integ).isel(time = step)
+    #     Stresses = ODB_ele_sec['Stresses'].sel(eleTags = ele_tag, secPoints = integ).isel(time = step)
+    #     # 检索0
+    #     break_mask = (Stresses == 0)
+    #     # break_mask = (Strains == 0)
+        
+    #     # 绘图
+    #     plt.close('all')
+    #     fig, ax = plt.subplots(figsize=(6, 4))
+    #     s = ax.scatter(
+    #         ys.where(~break_mask, drop=True), zs.where(~break_mask, drop=True), # drop=True 去掉不满足的数据点
+    #         c=Stresses.where(~break_mask, drop=True),
+    #         s=5,
+    #         cmap="rainbow",
+    #         zorder=2,
+    #     )
+    #     ax.scatter(
+    #         ys.where(break_mask, drop=True), zs.where(break_mask, drop=True),
+    #         c='#BDBDBD',
+    #         s=5,
+    #         label="Broken",
+    #         zorder=1,
+    #     )
+    #     # 坐标轴标签
+    #     ax.set_xlabel('local y')
+    #     ax.set_ylabel('local z')
+        
+    #     # 保证数据单位 1:1
+    #     # ax.set_aspect('equal', adjustable='box')
+    #     ax.set_aspect('equal', adjustable='datalim') # 保持 figsize
+        
+    #     # colorbar 
+    #     cbar = fig.colorbar(s, ax=ax, pad=0.02)
 
-        return fig
+    #     # 单独 legend
+    #     handles, labels = ax.get_legend_handles_labels()
+    #     fig.legend(
+    #         handles, labels,
+    #         loc='lower right',
+    #         bbox_to_anchor=(0.92, 0.01),  # 调整这个值可以移动 legend
+    #         framealpha=0.9)
+
+    #     return fig
 
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-    def reasp_top_disp(self, odb_tag: Union[str, int]):
+    def _resp_top_disp(self, odb_tag: Union[str, int]):
         # 导入数据
         ODB_node_disp_resp = opst.post.get_nodal_responses(odb_tag=odb_tag, resp_type='disp', print_info=False)
         # 控制节点位移
@@ -890,13 +996,13 @@ class TwoPierModelTEST:
         return disp
 
     "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-    def reasp_BRB(self, odb_tag: Union[str, int]):
+    def resp_BRB(self, odb_tag: Union[str, int]):
         # 导入数据
         ODB_BRB_resp = opst.post.get_element_responses(odb_tag=odb_tag, ele_type='Frame', print_info=False)
         # print(ODB_BRB_resp)
         
         # 墩顶位移数据
-        disp = np.array(self.reasp_top_disp(odb_tag))
+        disp = np.array(self._resp_top_disp(odb_tag))
         
         # BRB 轴力 - 变形 数据
         BRB_axialForce = ODB_BRB_resp['basicForces'].sel(eleTags=self.model_props.KeyEle['BRB'], basicDofs='N') # 轴力
@@ -969,15 +1075,12 @@ if __name__ == "__main__":
     params_path = './OutModel'
     os.makedirs(params_path, exist_ok=True)
     # 实例化模型
-    model_params = TwoPierModelTEST()
+    model_params = TwoPierModelTEST(modelPath=params_path)
     
     # 桥墩 模型
-    model_params.RCPier(
-        modelPath=params_path,
-        )
+    model_params.RCPier()
     # 桥墩 + BRB 模型
     model_params.RCPierBRB(
-        modelPath=params_path,
         core_ratio=0.43821,
         gap=0.02, gapK=18.e6 * UNIT.pa,
         bucklingK=176.7 * UNIT.gpa,
