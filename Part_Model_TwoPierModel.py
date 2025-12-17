@@ -63,10 +63,6 @@ class TwoPierModelTEST:
 
         self.model_props: PVs.MODEL_PROPS # 模型的输出属性
 
-        # 分析配置
-        self.ts = 1
-        ops.timeSeries("Linear", self.ts) # 创建时间序列：本实例仅供重力分析和静力分析
-
         # 结果数据
         self.node_resp: xr.DataArray # 节点响应数据
         self.ele_resp: xr.DataArray # 单元响应数据
