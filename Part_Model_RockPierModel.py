@@ -1492,14 +1492,14 @@ class RockPierModelTEST:
         df_list = []
         for loc in self.model_props.LocationDamage:
             tool = DamageStateTools(resp_data=ODB_ele_sec, ele_tag=loc.eleTag, integ=loc.integ)
-            df = tool.determine_sec(mat_props=self.model_props.SectionMat['PierProps'], dupe=True, info=info)
+            df = tool.det_sec(mat_props=self.model_props.SectionMat['PierProps'], dupe=True, info=info)
             df['location'] = loc.location
             df_list.append(df)
         # 合并
         PierModelDS = pd.concat(df_list, ignore_index=False)
 
         # 整体结构判断
-        StructuralDS = DamageStateTools.determine_struc(PierModelDS, info=True)
+        StructuralDS = DamageStateTools.det_struc(PierModelDS, info=True)
         
         return StructuralDS
 
