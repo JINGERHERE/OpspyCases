@@ -816,7 +816,7 @@ class SectionModel:
 """
 if __name__ == "__main__":
     
-    from Part_MatSec_MomentCurvature import MPhiSection
+    from SectionHub import SectionHub
     
     secTag_props = {
         'section_tag': 1,  # 截面
@@ -828,11 +828,11 @@ if __name__ == "__main__":
     }
     
     CASE_LIST = [
-        {'sec_func': MPhiSection.Section_Example_01, 'dir': "y"},
-        {'sec_func': MPhiSection.Section_Example_02, 'dir': "y"},
-        {'sec_func': MPhiSection.Section_Example_02, 'dir': "z"},
-        {'sec_func': MPhiSection.Section_Example_03, 'dir': "y"},
-        {'sec_func': MPhiSection.Section_Example_04, 'dir': "y"},
+        {'sec_func': SectionHub.Section_Example_01, 'dir': "y"},
+        {'sec_func': SectionHub.Section_Example_02, 'dir': "y"},
+        {'sec_func': SectionHub.Section_Example_02, 'dir': "z"},
+        {'sec_func': SectionHub.Section_Example_03, 'dir': "y"},
+        {'sec_func': SectionHub.Section_Example_04, 'dir': "y"},
         ]
     
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"

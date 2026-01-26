@@ -24,7 +24,7 @@ import script
 from script import UNIT, PVs
 from script.base import random_color
 from Part_Model_MomentCurvature import SectionModel
-from Part_MatSec_MomentCurvature import MPhiSection
+from SectionHub import SectionHub
 
 import multiprocessing as mulp
 from joblib import Parallel, delayed
@@ -90,11 +90,11 @@ if __name__ == "__main__":
 
     # 截面列表
     CASE_LIST = [
-        {'sec_func': MPhiSection.Section_Example_01, 'dir': "y"},
-        {'sec_func': MPhiSection.Section_Example_02, 'dir': "y"},
-        {'sec_func': MPhiSection.Section_Example_02, 'dir': "z"},
-        {'sec_func': MPhiSection.Section_Example_03, 'dir': "y"},
-        {'sec_func': MPhiSection.Section_Example_04, 'dir': "y"},
+        {'sec_func': SectionHub.Section_Example_01, 'dir': "y"},
+        {'sec_func': SectionHub.Section_Example_02, 'dir': "y"},
+        {'sec_func': SectionHub.Section_Example_02, 'dir': "z"},
+        {'sec_func': SectionHub.Section_Example_03, 'dir': "y"},
+        {'sec_func': SectionHub.Section_Example_04, 'dir': "y"},
         ]
 
     # 是否启用并行计算
