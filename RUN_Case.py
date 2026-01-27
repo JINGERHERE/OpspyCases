@@ -23,7 +23,7 @@ import rich
 import script
 from script import UNIT, PVs
 from script.base import random_color
-from Part_Model_MomentCurvature import SectionModel
+from CreateModel import SectionModel
 from SectionHub import SectionHub
 
 import multiprocessing as mulp

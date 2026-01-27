@@ -1,0 +1,192 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.19.1"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "517639dfcfe241e62c594b3dd3436532",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "8fe04a5614a0da07ae501c93b8455840",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "fc9ea09e489acc67bacb3f5eb1778d95",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "58992f351d77ba6ef4715855cf67afdb",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "69fb9c4abb9df6e123a614935b81bd41",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "exception",
+          "evalue": "obj must be a '<class 'type'>' or '<class 'object'>', got <class '__main__.Test'>",
+          "traceback": []
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "<span class=\"codehilite\"><div class=\"highlight\"><pre><span></span><span class=\"gt\">Traceback (most recent call last):</span>\n  File <span class=\"nb\">&quot;E:\\GitHub\\Opspy\\OpspyScripts\\.venv\\Lib\\site-packages\\marimo\\_runtime\\executor.py&quot;</span>, line <span class=\"m\">138</span>, in <span class=\"n\">execute_cell</span>\n<span class=\"w\">    </span><span class=\"n\">exec</span><span class=\"p\">(</span><span class=\"n\">cell</span><span class=\"o\">.</span><span class=\"n\">body</span><span class=\"p\">,</span> <span class=\"n\">glbls</span><span class=\"p\">)</span>\n  File <span class=\"nb\">&quot;C:\\Users\\Jinger\\AppData\\Local\\Temp\\marimo_20136\\__marimo__cell_lEQa_.py&quot;</span>, line <span class=\"m\">1</span>, in <span class=\"n\">&lt;module&gt;</span>\n<span class=\"w\">    </span><span class=\"n\">f1</span> <span class=\"o\">=</span> <span class=\"n\">get_callables</span><span class=\"p\">(</span><span class=\"n\">obj</span><span class=\"o\">=</span><span class=\"n\">test</span><span class=\"p\">)[</span><span class=\"mi\">2</span><span class=\"p\">]</span>\n<span class=\"w\">         </span><span class=\"pm\">^^^^^^^^^^^^^^^^^^^^^^^</span>\n  File <span class=\"nb\">&quot;C:\\Users\\Jinger\\AppData\\Local\\Temp\\marimo_20136\\__marimo__cell_bkHC_.py&quot;</span>, line <span class=\"m\">30</span>, in <span class=\"n\">get_callables</span>\n<span class=\"w\">    </span><span class=\"k\">raise</span> <span class=\"ne\">TypeError</span><span class=\"p\">(</span><span class=\"sa\">f</span><span class=\"s2\">&quot;obj must be a &#39;&lt;class &#39;type&#39;&gt;&#39; or &#39;&lt;class &#39;object&#39;&gt;&#39;, got </span><span class=\"si\">{</span><span class=\"nb\">type</span><span class=\"p\">(</span><span class=\"n\">obj</span><span class=\"p\">)</span><span class=\"si\">}</span><span class=\"s2\">&quot;</span><span class=\"p\">)</span>\n<span class=\"gr\">TypeError</span>: <span class=\"n\">obj must be a &#39;&lt;class &#39;type&#39;&gt;&#39; or &#39;&lt;class &#39;object&#39;&gt;&#39;, got &lt;class &#39;__main__.Test&#39;&gt;</span>\n</pre></div>\n</span>",
+          "mimetype": "application/vnd.marimo+traceback"
+        }
+      ]
+    },
+    {
+      "id": "PKri",
+      "code_hash": "6f26762759c8140a337dfc04ae212ca0",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "\u8fd9\u662f\u7c7b\u65b9\u6cd5\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "Xref",
+      "code_hash": "19d5bb616503868f32aaf93793b94a96",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre class='text-xs'>CallableInfo(name=&#x27;b&#x27;, kind=&#x27;data&#x27;, callable=2)</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "2e7ad8823506c76ccf2230154f088c7c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "[[\"a\", \"data\", 1], [\"b\", \"data\", 2], [\"c\", \"data\", 3]]"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "rKTV",
+      "code_hash": "0bd6fca3461bf5ff219ffe7f8c814c06",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "WGJH",
+      "code_hash": "d25a239bf53fc6a51bec8b7541d98b58",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre class='text-xs'>&lt;class &#x27;function&#x27;&gt;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "FgnT",
+      "code_hash": "3ebc12bc9b7f5cb19a3fd09d449a83eb",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "<class 'type'>\n<class '__main__.Test'>\n<class 'function'>\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "vKoC",
+      "code_hash": "aac5bcd433f6c24875a86bc69547e95a",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "exception",
+          "evalue": "obj must be a '<class 'type'>' or '<class 'object'>', got <class 'int'>",
+          "traceback": []
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "<span class=\"codehilite\"><div class=\"highlight\"><pre><span></span><span class=\"gt\">Traceback (most recent call last):</span>\n  File <span class=\"nb\">&quot;E:\\GitHub\\Opspy\\OpspyScripts\\.venv\\Lib\\site-packages\\marimo\\_runtime\\executor.py&quot;</span>, line <span class=\"m\">139</span>, in <span class=\"n\">execute_cell</span>\n<span class=\"w\">    </span><span class=\"k\">return</span> <span class=\"nb\">eval</span><span class=\"p\">(</span><span class=\"n\">cell</span><span class=\"o\">.</span><span class=\"n\">last_expr</span><span class=\"p\">,</span> <span class=\"n\">glbls</span><span class=\"p\">)</span>\n<span class=\"w\">           </span><span class=\"pm\">^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>\n  File <span class=\"nb\">&quot;C:\\Users\\Jinger\\AppData\\Local\\Temp\\marimo_20136\\__marimo__cell_vKoC_.py&quot;</span>, line <span class=\"m\">1</span>, in <span class=\"n\">&lt;module&gt;</span>\n<span class=\"w\">    </span><span class=\"n\">get_callables</span><span class=\"p\">(</span><span class=\"n\">obj</span><span class=\"o\">=</span><span class=\"n\">data</span><span class=\"o\">.</span><span class=\"n\">a</span><span class=\"p\">)</span>\n  File <span class=\"nb\">&quot;C:\\Users\\Jinger\\AppData\\Local\\Temp\\marimo_20136\\__marimo__cell_bkHC_.py&quot;</span>, line <span class=\"m\">30</span>, in <span class=\"n\">get_callables</span>\n<span class=\"w\">    </span><span class=\"k\">raise</span> <span class=\"ne\">TypeError</span><span class=\"p\">(</span><span class=\"sa\">f</span><span class=\"s2\">&quot;obj must be a &#39;&lt;class &#39;type&#39;&gt;&#39; or &#39;&lt;class &#39;object&#39;&gt;&#39;, got </span><span class=\"si\">{</span><span class=\"nb\">type</span><span class=\"p\">(</span><span class=\"n\">obj</span><span class=\"p\">)</span><span class=\"si\">}</span><span class=\"s2\">&quot;</span><span class=\"p\">)</span>\n<span class=\"gr\">TypeError</span>: <span class=\"n\">obj must be a &#39;&lt;class &#39;type&#39;&gt;&#39; or &#39;&lt;class &#39;object&#39;&gt;&#39;, got &lt;class &#39;int&#39;&gt;</span>\n</pre></div>\n</span>",
+          "mimetype": "application/vnd.marimo+traceback"
+        }
+      ]
+    }
+  ]
+}

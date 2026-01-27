@@ -28,6 +28,25 @@ UNIT = opst.pre.UnitSystem(
 # 全局模型管理器
 MM = opsu.pre.ModelManager(include_start=False)
 
+"===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+# 数据后处理方法
+class PostProcess:
+    
+    @staticmethod
+    def equivalent_bilinear():
+        ...
+    
+    @staticmethod
+    def determine_damage():
+        ...
+
+
+"===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+# 绘图方法
+class PlotyHub:
+    ...
+
+
 """
 # --------------------------------------------------
 # ========== < TEST > ==========
@@ -38,3 +57,5 @@ if __name__ == "__main__":
     
     print(f'全局单位：\n{UNIT}\n')
     print(f'全局模型管理器：\n{MM}\n')
+    
+

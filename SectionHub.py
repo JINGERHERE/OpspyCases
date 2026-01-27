@@ -558,11 +558,16 @@ if __name__ == "__main__":
     ops.wipe()
     ops.model("basic", "-ndm", 3, "-ndf", 6)
     
-    # 截面
-    SectionHub.sec_I(manager=MM, save_sec=out_path)
-    SectionHub.sec_rect(manager=MM, save_sec=out_path)
-    SectionHub.sec_polygonal(manager=MM, save_sec=out_path)
-    SectionHub.sec_circle(manager=MM, save_sec=out_path)
+    # # 截面
+    # SectionHub.sec_I(manager=MM, save_sec=out_path)
+    # SectionHub.sec_rect(manager=MM, save_sec=out_path)
+    # SectionHub.sec_polygonal(manager=MM, save_sec=out_path)
+    # SectionHub.sec_circle(manager=MM, save_sec=out_path)
+    
+    # 批量调用
+    callables = opsu.get_callables(SectionHub)
+    for item in callables:
+        item.callable(manager=MM, save_sec=out_path)
     
     # 导出模型管理器
-    MM.to_excel(out_path / 'ModelManager.xlsx')
+    MM.to_excel(Path(out_path) / 'ModelManager.xlsx')

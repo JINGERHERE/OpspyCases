@@ -43,20 +43,19 @@ class GravityAnalysis:
         
         self.ODB = ODB
     
-    def analyze(self) -> None:
+    def analyze(self, Nsteps: int = 10) -> None:
         
         """
         Gravity analysis.
         
         Args:
-            None
+            Nsteps (int, optional): 分析步数。 Defaults to 10.
         
         Returns:
             None
         """
         
         # 重力分析系统配置
-        Nsteps = 10
         ops.system('BandGeneral')  # 求解器类型，BandGeneral适用于带状矩阵，如梁柱结构
         ops.constraints('Transformation')  # 约束处理方法，Transformation，适用于大多数问题
         ops.numberer('RCM')  # 节点编号方法，RCM (Reverse Cuthill-McKee)算法，可以减少带宽
@@ -99,7 +98,7 @@ class StaticAnalysis:
 
     def analyze(
         self,
-        ctrl_node: int, dof: Literal[1, 2, 3],
+        ctrl_node: int, dof: Union[int, Literal[1, 2, 3, 4, 5, 6]],
         targets: Union[list, tuple, np.ndarray], max_step: float,
         ) -> Tuple[np.ndarray, np.ndarray]:
 
@@ -109,7 +108,7 @@ class StaticAnalysis:
 
         Args:
             ctrl_node (int): 被控制位移的 节点标签。
-            dof (Literal[1, 2, 3]): 节点 被控制位移的方向。
+            dof (Union[int, Literal[1, 2, 3, 4, 5, 6]]): 节点 被控制位移的方向。
             max_step (float): 分析时的最大步长。
             targets (Union[list, tuple, np.ndarray]): 位移路径。
 
