@@ -35,21 +35,12 @@ import pickle
 
 import imageio.v2 as imageio
 
-# from script.pre import NodeTools
-# from script.base import random_color, rich_showwarning
-# from script import UNIT, PVs
-
-
-
-# from Part_MatSec_MomentCurvature import MPhiSection
-# from script.post import DamageStateTools
-# from Script_ModelCreate import ModelCreateTools
 
 import ops_utilities as opsu
+from ops_utilities import rich_showwarning
 import AnalysisLibraries as ALs
 from SectionHub import SectionHub
 
-from ops_utilities import rich_showwarning
 import warnings
 warnings.showwarning = rich_showwarning
 
@@ -88,16 +79,6 @@ class SectionModel:
         self.MM = manager
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 编号
-        self.node_load = manager.next_tag(category='node', label='load')
-        self.node_fix = manager.next_tag(category='node', label='fix')
-        self.ele_sec = manager.next_tag(category='element', label='sec')
-        
-        self.ts = manager.next_tag(category='timeSeries', label='ts')
-        self.axial_force = manager.next_tag(category='pattern')
-        self.ctrl_force = manager.next_tag(category='pattern', label='ctrl_force')
-        
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 获取可调用截面对象
         self.sections = opsu.get_callables(SectionHub)
         if num > len(self.sections):
@@ -108,6 +89,16 @@ class SectionModel:
         self.current_sec_name = self.current_sec.name
         # 当前截面的返回对象
         self.SEC: opst.pre.section.FiberSecMesh
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 编号
+        self.node_load = manager.next_tag(category='node', label='load')
+        self.node_fix = manager.next_tag(category='node', label='fix')
+        self.ele_sec = manager.next_tag(category='element', label=self.current_sec_name)
+        
+        self.ts = manager.next_tag(category='timeSeries', label='ts')
+        self.axial_force = manager.next_tag(category='pattern')
+        self.ctrl_force = manager.next_tag(category='pattern', label='ctrl_force')
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 保存路径

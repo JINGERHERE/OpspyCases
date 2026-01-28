@@ -72,7 +72,7 @@ def _(dataclass):
         c: int = 3
 
     data = Data1()
-    return Data1, data
+    return (Data1,)
 
 
 @app.cell
@@ -86,25 +86,25 @@ def _(List, Literal, Union, inspect, namedtuple):
         """
         返回类对象中所有可调用的函数。
             - 不包含魔法方法（以 '__' 开头）。
-    
+
         Args:
             obj (Union[type, object]): 类对象。
             kind (Literal['function', 'method', 'property', 'data', 'all'], optional): 可调用对象的类型。默认值为 'all'。
-    
+
         Raises:
             TypeError: 如果 obj 不是类对象。
             ValueError: 如果 kind 不是允许的值。
-    
+
         Returns:
             List[CallableInfo]: 包含函数名和函数对象的列表。
-    
+
         """
 
         # 限制输入
         kind_allowed = {'function', 'method', 'property', 'data', 'all'}
         if kind not in kind_allowed:
             raise ValueError(f"kind must be one of {kind_allowed}, got {kind!r}")
-    
+
         if obj.__class__ is not type:
             raise TypeError(f"obj must be a '<class 'type'>' or '<class 'object'>', got {type(obj)}")
 
@@ -119,7 +119,7 @@ def _(List, Literal, Union, inspect, namedtuple):
         get_func = inspect.getmembers(obj_class, predicate=inspect.isfunction) # 函数
         get_method = inspect.getmembers(obj_class, predicate=inspect.ismethod) # 方法
         get_prop = inspect.getmembers(obj_class, predicate=is_property) # 属性
-    
+
         # 汇总所有可调用对象
         cls_callables = dict(
             function = [
@@ -201,8 +201,28 @@ def _(Test, test):
 
 
 @app.cell
-def _(data, get_callables):
-    get_callables(obj=data.a)
+def _():
+    sec_props = {
+        "A": 1.,
+        "E": 2.,
+        "J": 3.,
+        "I": 0.1
+        }
+    return (sec_props,)
+
+
+@app.cell
+def _(sec_props):
+    sec_props['C'] = 0.01
+    print(sec_props)
+    return
+
+
+@app.cell
+def _():
+    ON = False
+    props = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    print([n*2 if ON else "_" for n in props])
     return
 
 

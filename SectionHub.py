@@ -102,15 +102,11 @@ class SectionHub:
         sec_props = SEC.get_sec_props(display_results=info) # 截面信息
 
         # ops 材料参数
-        mat_params = dict(fy=400. * UNIT.mpa, Es=200. * UNIT.gpa, b=0.01)
+        fy, Es = 400. * UNIT.mpa, 200. * UNIT.gpa
+        mat_params = dict(fy=fy, Es=Es, b=0.01, R0=18, cR1=0.925, cR2=0.15)
         
         # 截面轴压力
         sec_props['P'] = 0.1 * (sec_props['A'] * abs(mat_params['fy']))
-        
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 储存至管理器
-        manager.set_params(category="uniaxialMaterial", tag=steel_tag, params=mat_params) # 材料
-        manager.set_params(category="section", tag=sec_tag, params=sec_props) # 截面
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 定义材料
@@ -118,6 +114,16 @@ class SectionHub:
         
         # 定义截面
         SEC.to_opspy_cmds(secTag=sec_tag, G=100. * UNIT.gpa)
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
+        sec_props['strain_stages'] = {
+            steel_tag: [fy / Es, 0.015, 0.055, 0.1],
+            # core_tag: [fy / Es, ecu, 0.75 * eccu, eccu],
+            }
+        # 储存至管理器
+        manager.set_params(category="uniaxialMaterial", tag=steel_tag, params=mat_params) # 材料
+        manager.set_params(category="section", tag=sec_tag, params=sec_props) # 截面
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 可视化 截面
@@ -198,11 +204,6 @@ class SectionHub:
         sec_props['P'] = 0.1 * (sec_props['A'] * abs(fy))
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 储存至管理器
-        manager.set_params(category="uniaxialMaterial", tag=inner_tag, params=steel_params) # 材料
-        manager.set_params(category="section", tag=sec_tag, params=sec_props) # 截面
-        
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 定义材料
         ops.uniaxialMaterial("Steel02", inner_tag, *steel_params.values())
 
@@ -212,6 +213,16 @@ class SectionHub:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 旋转截面
         SEC.rotate(0, remesh=True)
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
+        sec_props['strain_stages'] = {
+            inner_tag: [fy / Es, 0.015, 0.055, 0.1],
+            # core_tag: [fy / Es, ecu, 0.75 * eccu, eccu],
+            }
+        # 储存至管理器
+        manager.set_params(category="uniaxialMaterial", tag=inner_tag, params=steel_params) # 材料
+        manager.set_params(category="section", tag=sec_tag, params=sec_props) # 截面
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 可视化 截面
@@ -383,13 +394,6 @@ class SectionHub:
         sec_props['P'] = 0.1 * (sec_props['A'] * abs(fc))
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 储存至管理器
-        manager.set_params(category="uniaxialMaterial", tag=cover_tag, params=cover_params) # 保护层
-        manager.set_params(category="uniaxialMaterial", tag=core_tag, params=core_params) # 核心
-        manager.set_params(category="uniaxialMaterial", tag=rebar_tag, params=rebar_params) # 钢筋
-        manager.set_params(category="section", tag=sec_tag, params=sec_props) # 截面
-
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 定义材料
         ops.uniaxialMaterial("Concrete04 ", cover_tag, *cover_params.values())
         ops.uniaxialMaterial("Concrete04 ", core_tag, *core_params.values())
@@ -400,6 +404,18 @@ class SectionHub:
             secTag=sec_tag,
             GJ=sec_props['J'] * ConcHub.get_G(concrete_type) * UNIT.mpa
             )
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
+        sec_props['strain_stages'] = {
+            rebar_tag: [fy / Es, 0.015, 0.055, 0.1],
+            core_tag: [fy / Es, ecu, 0.75 * eccu, eccu],
+            }
+        # 储存至管理器
+        manager.set_params(category="uniaxialMaterial", tag=cover_tag, params=cover_params) # 保护层
+        manager.set_params(category="uniaxialMaterial", tag=core_tag, params=core_params) # 核心
+        manager.set_params(category="uniaxialMaterial", tag=rebar_tag, params=rebar_params) # 钢筋
+        manager.set_params(category="section", tag=sec_tag, params=sec_props) # 截面
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 可视化 截面
@@ -509,13 +525,6 @@ class SectionHub:
         sec_props['P'] = 0.1 * (sec_props['A'] * abs(fc))
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 储存至管理器
-        manager.set_params(category="uniaxialMaterial", tag=cover_tag, params=cover_params) # 保护层
-        manager.set_params(category="uniaxialMaterial", tag=core_tag, params=core_params) # 核心
-        manager.set_params(category="uniaxialMaterial", tag=rebar_tag, params=rebar_params) # 钢筋
-        manager.set_params(category="section", tag=sec_tag, params=sec_props) # 截面
-
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 定义材料
         ops.uniaxialMaterial("Concrete04 ", cover_tag, *cover_params.values())
         ops.uniaxialMaterial("Concrete04 ", core_tag, *core_params.values())
@@ -526,6 +535,18 @@ class SectionHub:
             secTag=sec_tag,
             GJ=sec_props['J'] * ConcHub.get_G(concrete_type) * UNIT.mpa
             )
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
+        sec_props['strain_stages'] = {
+            rebar_tag: [fy / Es, 0.015, 0.055, 0.1],
+            core_tag: [fy / Es, ecu, 0.75 * eccu, eccu],
+            }
+        # 储存至管理器
+        manager.set_params(category="uniaxialMaterial", tag=cover_tag, params=cover_params) # 保护层
+        manager.set_params(category="uniaxialMaterial", tag=core_tag, params=core_params) # 核心
+        manager.set_params(category="uniaxialMaterial", tag=rebar_tag, params=rebar_params) # 钢筋
+        manager.set_params(category="section", tag=sec_tag, params=sec_props) # 截面
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 可视化 截面
