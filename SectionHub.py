@@ -73,7 +73,7 @@ class SectionHub:
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 定义编号
-        steel_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_steel') # 定义材料编号
+        steel_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_steel') # 标签标记为绘图所需
         sec_tag = manager.next_tag(category="section", label=sec_name) # 定义截面编号
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
@@ -118,8 +118,13 @@ class SectionHub:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
         sec_props['strain_stages'] = {
-            steel_tag: [fy / Es, 0.015, 0.055, 0.1],
-            # core_tag: [fy / Es, ecu, 0.75 * eccu, eccu],
+            steel_tag: (fy / Es, 0.015, 0.055, 0.1),
+            # core_tag: (-fy / Es, -ecu, 0.75 * -eccu, -eccu),
+            }
+        # 截面 应变阈值 用于：opst.pre.section.FiberSecMesh.plot_response(thresholds=)
+        sec_props['strain_thresholds'] = {
+            steel_tag: (-0.1, 0.1), # 只能两个值
+            # core_tag: (-eccu, 0.),
             }
         # 储存至管理器
         manager.set_params(category="uniaxialMaterial", tag=steel_tag, params=mat_params) # 材料
@@ -165,7 +170,7 @@ class SectionHub:
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 内部材料标签
-        inner_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_inner') # 定义材料编号
+        inner_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_steel') # 标签标记为绘图所需
         # 截面标签
         sec_tag = manager.next_tag(category="section", label=sec_name) # 定义截面编号
         
@@ -217,8 +222,13 @@ class SectionHub:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
         sec_props['strain_stages'] = {
-            inner_tag: [fy / Es, 0.015, 0.055, 0.1],
-            # core_tag: [fy / Es, ecu, 0.75 * eccu, eccu],
+            inner_tag: (fy / Es, 0.015, 0.055, 0.1),
+            # core_tag: (-fy / Es, -ecu, 0.75 * -eccu, -eccu),
+            }
+        # 截面 应变阈值 用于：opst.pre.section.FiberSecMesh.plot_response(thresholds=)
+        sec_props['strain_thresholds'] = {
+            inner_tag: (-0.1, 0.1), # 只能两个值
+            # core_tag: (-eccu, 0.),
             }
         # 储存至管理器
         manager.set_params(category="uniaxialMaterial", tag=inner_tag, params=steel_params) # 材料
@@ -266,7 +276,7 @@ class SectionHub:
         # 定义材料编号
         cover_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_cover')
         core_tag =manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_core')
-        rebar_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_rebar')
+        rebar_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_rebar') # 标签标记为绘图所需
         # 定义截面编号
         sec_tag = manager.next_tag(category="section", label=sec_name) # 定义截面编号
         
@@ -378,9 +388,9 @@ class SectionHub:
         ec, ecu = 0.002, 0.0033
         # 核心混凝土
         fcc, ecc, eccu = Mander.rectangular(
-            lx=(W1 + W2) / 2., ly=H3, coverThick=cover,
-            fco=fc, dsl=bar_dia, roucc=sec_props['rho_rebar'],
-            st=25 * UNIT.cm, fyh=500. * UNIT.mpa,
+            lx=(W1 + W2) / 2., ly=H3,  fco=fc,
+            coverThick=cover, dsl=bar_dia, roucc=sec_props['rho_rebar'],
+            st=25 * UNIT.cm, dst=10 * UNIT.mm, fyh=500. * UNIT.mpa,
             )
         # 钢筋
         fy, Es = ReBarHub.get_fyk(rebar_type) * UNIT.mpa, ReBarHub.get_Es(rebar_type) * UNIT.mpa
@@ -408,8 +418,14 @@ class SectionHub:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
         sec_props['strain_stages'] = {
-            rebar_tag: [fy / Es, 0.015, 0.055, 0.1],
-            core_tag: [fy / Es, ecu, 0.75 * eccu, eccu],
+            rebar_tag: (fy / Es, 0.015, 0.055, 0.1),
+            core_tag: (-fy / Es, -ecu, 0.75 * -eccu, -eccu),
+            }
+        # 截面 应变阈值 用于：opst.pre.section.FiberSecMesh.plot_response(thresholds=)
+        sec_props['strain_thresholds'] = {
+            rebar_tag: (-0.1, 0.1), # 只能两个值
+            cover_tag: (-ecu, 0.),
+            core_tag: (-eccu, 0.),
             }
         # 储存至管理器
         manager.set_params(category="uniaxialMaterial", tag=cover_tag, params=cover_params) # 保护层
@@ -459,7 +475,7 @@ class SectionHub:
         # 定义材料编号
         cover_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_cover')
         core_tag =manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_core')
-        rebar_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_rebar')
+        rebar_tag = manager.next_tag(category="uniaxialMaterial", label=f'{sec_name}_rebar') # 标签标记为绘图所需
         # 定义截面编号
         sec_tag = manager.next_tag(category="section", label=sec_name) # 定义截面编号
 
@@ -539,8 +555,14 @@ class SectionHub:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
         sec_props['strain_stages'] = {
-            rebar_tag: [fy / Es, 0.015, 0.055, 0.1],
-            core_tag: [fy / Es, ecu, 0.75 * eccu, eccu],
+            rebar_tag: (fy / Es, 0.015, 0.055, 0.1),
+            core_tag: (-fy / Es, -ecu, 0.75 * -eccu, -eccu),
+            }
+        # 截面 应变阈值 用于：opst.pre.section.FiberSecMesh.plot_response(thresholds=)
+        sec_props['strain_thresholds'] = {
+            rebar_tag: (-0.1, 0.1), # 只能两个值
+            cover_tag: (-ecu, 0.),
+            core_tag: (-eccu, 0.),
             }
         # 储存至管理器
         manager.set_params(category="uniaxialMaterial", tag=cover_tag, params=cover_params) # 保护层

@@ -226,5 +226,71 @@ def _():
     return
 
 
+@app.cell
+def _():
+    D1 = {'a': 1, 'b': 2}
+    D2 = {'c': 1, 'd': 2}
+    D3 = {'e': 1, 'f': 2}
+    t = dict(**D1, **D2, **D3)
+
+    for k, v in t.items():
+        print(f'key: {k}, values: {v}')
+    return
+
+
+@app.cell
+def _():
+    DD = {
+        1: (1, 2, 3),
+        2: (1, 2, 3),
+        3: (1, 2, 3),
+        4: (1, 2, 3),
+        }
+    print(tuple(DD.keys()))
+    return
+
+
+@app.cell
+def _():
+    from scipy.integrate import trapezoid
+
+    x = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    y = [0, 2, 23, 44, 56, 124]
+    print(trapezoid(y, x))
+
+    return
+
+
+@app.cell
+def _():
+    def pp(a, b):
+        print(f'a: {a}, b: {b}')
+
+    section_case = [
+        ('sec_I', 'y'),
+        ('sec_rect', 'y'),
+        ('sec_polygonal', 'y'),
+        ('sec_polygonal', 'z'),
+        ('sec_circle', 'y'),
+        ('sec_circle', 'z'),
+        ]
+
+    for i in section_case:
+        print(i[0])
+    return
+
+
+@app.cell
+def _():
+    N = 4750
+    speed = 50
+
+    r = list(range(0, N, speed)) + [N]
+
+    for i in r:
+        print(i)
+    return
+
+
 if __name__ == "__main__":
     app.run()

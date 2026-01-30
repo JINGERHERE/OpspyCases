@@ -7,7 +7,14 @@
     {
       "id": "Hbol",
       "code_hash": "517639dfcfe241e62c594b3dd3436532",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
@@ -85,6 +92,12 @@
     {
       "id": "nWHF",
       "code_hash": "5dc6ce62a553ef5b4e58fdc1b97e5ce6",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "14e7a7eb2095ee1e925e85b713be776b",
       "outputs": [
         {
           "type": "data",
@@ -97,7 +110,87 @@
         {
           "type": "stream",
           "name": "stdout",
-          "text": "['_', '_', '_', '_', '_', '_', '_', '_', '_']\n",
+          "text": "key: a, values: 1\nkey: b, values: 2\nkey: c, values: 1\nkey: d, values: 2\nkey: e, values: 1\nkey: f, values: 2\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "DNRi",
+      "code_hash": "9680a574f9053e21f735a338b1131b06",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "(1, 2, 3, 4)\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "3bf1910cece5bf71fa62ddb90ab8b21d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "18.699999999999996\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "7203bc56021687dd70ff76eb99c0aaad",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "sec_I\nsec_rect\nsec_polygonal\nsec_polygonal\nsec_circle\nsec_circle\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "gMXg",
+      "code_hash": "df4c87cadb826a575b5d6fdae2b6c990",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "0\n50\n100\n150\n200\n250\n300\n350\n400\n450\n500\n550\n600\n650\n700\n750\n800\n850\n900\n950\n1000\n1050\n1100\n1150\n1200\n1250\n1300\n1350\n1400\n1450\n1500\n1550\n1600\n1650\n1700\n1750\n1800\n1850\n1900\n1950\n2000\n2050\n2100\n2150\n2200\n2250\n2300\n2350\n2400\n2450\n2500\n2550\n2600\n2650\n2700\n2750\n2800\n2850\n2900\n2950\n3000\n3050\n3100\n3150\n3200\n3250\n3300\n3350\n3400\n3450\n3500\n3550\n3600\n3650\n3700\n3750\n3800\n3850\n3900\n3950\n4000\n4050\n4100\n4150\n4200\n4250\n4300\n4350\n4400\n4450\n4500\n4550\n4600\n4650\n4700\n4750\n",
           "mimetype": "text/plain"
         }
       ]
