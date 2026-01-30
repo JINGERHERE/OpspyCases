@@ -74,7 +74,7 @@ def ANALYSIS_CASE(name: str, deg: float, dof: str, file_path: Path) -> None:
     
     # 保存曲线数据
     df = pd.DataFrame({'Curvature': sel_phi, 'Moment': sel_moment})
-    df.to_excel(data_path / 'moment_curvature.xlsx', index=False)
+    df.to_excel(data_path / 'Moment_Curvature.xlsx', index=False)
     
     # 等效双线性
     post.plot_equivalent_bilinear(
