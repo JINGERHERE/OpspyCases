@@ -3,7 +3,7 @@
 
 """
 # ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-@File    ：Part_MatSec_MomentCurvature.py
+@File    ：SectionHub.py
 @Date    ：2025/8/1 19:16
 @IDE     ：PyCharm
 @Author  ：Wang Jing
@@ -30,7 +30,7 @@ from ModelUtilities import UNIT
 
 """
 # --------------------------------------------------
-# ========== < Part_MatSec_MomentCurvature > ==========
+# ========== < SectionHub > ==========
 # --------------------------------------------------
 """
 
