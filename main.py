@@ -23,7 +23,7 @@ from collections import namedtuple
 """
 
 
-from ModelCaseHub import ANALYSIS_CASE
+from CaseHub import ANALYSIS_CASE
 import multiprocessing as mulp
 from joblib import Parallel, delayed
 

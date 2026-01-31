@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 from matplotlib.legend import Legend
+from matplotlib.colorbar import Colorbar
 import gif
 from typing import Union, Optional, Literal, List, Tuple, Dict
 
@@ -117,7 +118,7 @@ class PlotyHub:
     # < 单坐标轴 > 绘图参数调整方法
     # ----- ----- ----- ----- -----
     @classmethod
-    def adjust_single(cls, fig: Figure, ax: Axes, leg: Optional[Legend] = None) -> Figure:
+    def adjust_single(cls, fig: Figure, ax: Axes, leg: Optional[Legend] = None, cbar: Optional[Colorbar] = None) -> Figure:
         
         """
         单坐标轴绘图参数调整方法。
@@ -164,6 +165,16 @@ class PlotyHub:
         # 图例
         if leg is not None:
             AdjustPlot.adjust_leg(leg, **leg_params)
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 颜色条参数
+        cbar_params = {
+            'label': '', 'label_size': 20, 'label_pad': 7.,
+            'ticks': True, 'ticks_size': 18, 'ticks_pad': 12.,
+            }
+        # 颜色条
+        if cbar is not None:
+            AdjustPlot.adjust_cbar_y(cbar, **cbar_params)
         
         return fig_adj
     
@@ -300,7 +311,7 @@ class PostProcess:
             
             fig.suptitle(f'{self.name} - fiber response', fontsize=22, color='black', x=0.5, y=0.98, alpha=1.0)
             # 获取材料编号
-            mat_tag = self.MM.get_tag(category='uniaxialMaterial', label=f'{self.name}_steel')[0]
+            mat_tag = self.MM.get_tag(category='uniaxialMaterial', label=f'{self.name}_steel')[0] # 用户定义的 label
             # 获取应力应变数据
             strains = self.SMS.get_data_mat(mat_tag=mat_tag, data_type='Strains', points=points).iloc[:self.ds_stages[-1]+1, :]
             stresses = self.SMS.get_data_mat(mat_tag=mat_tag, data_type='Stresses', points=points).iloc[:self.ds_stages[-1]+1, :]
@@ -321,8 +332,8 @@ class PostProcess:
             
             fig.suptitle(f'{self.name} - fiber response', fontsize=38, color='black', x=0.5, y=0.98, alpha=1.0)
             # 获取材料编号
-            mat_tag_rebar = self.MM.get_tag(category='uniaxialMaterial', label=f'{self.name}_rebar')[0]
-            mat_tag_core = self.MM.get_tag(category='uniaxialMaterial', label=f'{self.name}_core')[0]
+            mat_tag_rebar = self.MM.get_tag(category='uniaxialMaterial', label=f'{self.name}_rebar')[0] # 用户定义的 label
+            mat_tag_core = self.MM.get_tag(category='uniaxialMaterial', label=f'{self.name}_core')[0] # 用户定义的 label
             # 获取应力应变数据
             strains_rebar = self.SMS.get_data_mat(
                 mat_tag=mat_tag_rebar, data_type='Strains', points=points
@@ -510,7 +521,7 @@ class PostProcess:
             ax=ax, fontsize=20
             )
         # 调整尺寸
-        adj_fig = PlotyHub.adjust_single(fig, ax_sec)
+        adj_fig = PlotyHub.adjust_single(fig=fig, ax=ax_sec, cbar=cbar_sec)
         
         return adj_fig
 
@@ -531,7 +542,7 @@ class PostProcess:
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 保存画布
-        fig.savefig(self.data_path / f'{self.name}_secResp.png', dpi=320)
+        fig.savefig(self.data_path / f'{self.name}_resp.png', dpi=320)
         
     def plot_sec_resp_ani(self, SEC: opst.pre.section.FiberSecMesh, max_steps: int, speed: int = 5) -> None:
         
@@ -560,7 +571,7 @@ class PostProcess:
             frames.append(frame)
         
         # 保存GIF
-        gif.save(frames, str(self.data_path / f'{self.name}_secResp.gif'))
+        gif.save(frames, str(self.data_path / f'{self.name}_resp.gif'))
 
 
 """
