@@ -2,6 +2,6 @@
 
 cd /d "%~dp0"
 
-.venv\Scripts\python.exe Part_Run_BRB.py
+.venv\Scripts\python.exe main.py
 
 pause

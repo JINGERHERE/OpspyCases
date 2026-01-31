@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+__marimo__/
 
 # Virtual environments
 .venv
@@ -19,6 +20,11 @@ wheels/
 _OPSTOOL_ODB
 .RAW_DATA
 .LEARNING
+.z*
+0
+*.0
+*.nc
+*.zarr
 
 # Client Repository
 script
