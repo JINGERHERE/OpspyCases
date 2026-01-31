@@ -35,7 +35,7 @@ from script.pre import NodeTools
 from script.base import random_color
 from script import UNIT, PVs, ModelCreateTools
 
-from Part_MatSec_RockPierModel import RockPierModelSection
+from SectionHub import RockPierModelSection
 
 from script.post import DamageStateTools
 from script.base import rich_showwarning
