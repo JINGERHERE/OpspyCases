@@ -609,8 +609,8 @@ if __name__ == "__main__":
     
     # 批量调用
     callables = opsu.get_callables(SectionHub)
-    for item in callables:
-        item.callable(manager=MM, save_sec=out_path)
+    for name, sec_func in callables.items():
+        sec_func(manager=MM, save_sec=out_path)
     
     # 导出模型管理器
     MM.to_excel(Path(out_path) / 'ModelManager.xlsx')
