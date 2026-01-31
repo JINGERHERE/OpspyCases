@@ -22,6 +22,7 @@ _OPSTOOL_ODB
 .z*
 0
 *.0
+ops_utilities
 
 # Client Repository
 script
