@@ -40,6 +40,9 @@ UNIT = opst.pre.UnitSystem(
 # 全局模型管理器
 MM = opsu.pre.ModelManager(include_start=True)
 
+# 全局 OpenSeesEasy 实例
+OPSE = opsu.pre.OpenSeesEasy()
+
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
 # 绘图方法
 class PlotyHub:
@@ -648,4 +651,3 @@ if __name__ == "__main__":
     
     # plt.show()
     # adj_fig.savefig('./ExamplePlot_dual.png', dpi=320)
-

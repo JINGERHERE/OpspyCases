@@ -24,7 +24,7 @@ import opstool as opst
 
 import ops_utilities as opsu
 from ops_utilities.pre import ConcHub, ReBarHub, Mander
-from ModelUtilities import UNIT
+from ModelUtilities import UNIT, OPSE
 
 
 """
@@ -163,6 +163,9 @@ class SectionHub:
             cover_tag: (-ecu, 0.),
             core_tag: (-eccu, 0.),
             }
+        # 截面几何参数
+        sec_props['Width'] = W
+        sec_props['Height'] = H
         # 储存至管理器
         manager.set_params(category="uniaxialMaterial", tag=cover_tag, params=cover_params) # 保护层
         manager.set_params(category="uniaxialMaterial", tag=core_tag, params=core_params) # 核心
@@ -301,6 +304,9 @@ class SectionHub:
             cover_tag: (-ecu, 0.),
             core_tag: (-eccu, 0.),
             }
+        # 截面几何参数
+        sec_props['Width'] = W
+        sec_props['Height'] = H
         # 储存至管理器
         manager.set_params(category="uniaxialMaterial", tag=cover_tag, params=cover_params) # 保护层
         manager.set_params(category="uniaxialMaterial", tag=core_tag, params=core_params) # 核心
@@ -404,6 +410,9 @@ class SectionHub:
             mat_tag: (-0.1, 0.1), # 只能两个值
             # core_tag: (-eccu, 0.),
             }
+        # 截面几何参数
+        sec_props['Width'] = W
+        sec_props['Height'] = H
         # 储存至管理器
         manager.set_params(category="uniaxialMaterial", tag=mat_tag, params=ENT_params) # 材料
         manager.set_params(category="section", tag=sec_tag, params=sec_props) # 截面
