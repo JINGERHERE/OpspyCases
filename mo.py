@@ -21,201 +21,7 @@ def _():
     from typing import NamedTuple, List, Type, Union, Literal, Optional
     from collections import namedtuple
     from dataclasses import dataclass, fields, asdict
-    return List, Literal, Union, dataclass, inspect, namedtuple
-
-
-@app.cell
-def _():
-    # 定义类
-    class Test:
-        def __init__(self):
-            self.a = 1
-            self.b = 2
-
-        def __name__(self):
-            return 'test_test'
-
-        def test0(self):
-            print(f'这是实例方法')
-
-        @staticmethod
-        def test1():
-            print(f'这是静态方法')
-
-        @classmethod
-        def test2(cls):
-            print(f'这是类方法')
-
-        @property
-        def ps(self):
-            """要触发绑定才会返回1"""
-            print("这是属性方法")
-            return 1
-
-    # 实例化类
-    test = Test()
-    return Test, test
-
-
-@app.cell
-def _(dataclass):
-    @dataclass
-    class Data1:
-        a=1
-        b=2
-        c=3
-
-    @dataclass
-    class Data2:
-        a: int = 1
-        b: int = 2
-        c: int = 3
-
-    data = Data1()
-    return (Data1,)
-
-
-@app.cell
-def _(List, Literal, Union, inspect, namedtuple):
-    CallableInfo = namedtuple('CallableInfo', ['name', 'kind', 'callable'])
-    def get_callables(
-        obj: Union[type, object],
-        kind: Literal['function', 'method', 'property', 'data', 'all'] = 'all',
-        ) -> List[CallableInfo]:
-
-        """
-        返回类对象中所有可调用的函数。
-            - 不包含魔法方法（以 '__' 开头）。
-
-        Args:
-            obj (Union[type, object]): 类对象。
-            kind (Literal['function', 'method', 'property', 'data', 'all'], optional): 可调用对象的类型。默认值为 'all'。
-
-        Raises:
-            TypeError: 如果 obj 不是类对象。
-            ValueError: 如果 kind 不是允许的值。
-
-        Returns:
-            List[CallableInfo]: 包含函数名和函数对象的列表。
-
-        """
-
-        # 限制输入
-        kind_allowed = {'function', 'method', 'property', 'data', 'all'}
-        if kind not in kind_allowed:
-            raise ValueError(f"kind must be one of {kind_allowed}, got {kind!r}")
-
-        if obj.__class__ is not type:
-            raise TypeError(f"obj must be a '<class 'type'>' or '<class 'object'>', got {type(obj)}")
-
-        # 获取实际的对象
-        if isinstance(obj, type):
-            obj_class = obj # 类对象
-        else:
-            obj_class = obj.__class__ # 获取类本身
-
-        # 获取可调用对象
-        is_property = lambda c: isinstance(c, property)
-        get_func = inspect.getmembers(obj_class, predicate=inspect.isfunction) # 函数
-        get_method = inspect.getmembers(obj_class, predicate=inspect.ismethod) # 方法
-        get_prop = inspect.getmembers(obj_class, predicate=is_property) # 属性
-
-        # 汇总所有可调用对象
-        cls_callables = dict(
-            function = [
-                CallableInfo(name=name, kind='function', callable=getattr(obj_class, name))
-                    for name, _ in get_func
-                        if not name.startswith('__')
-                ],
-            method = [
-                CallableInfo(name=name, kind='method', callable=getattr(obj_class, name))
-                    for name, _ in get_method
-                        if not name.startswith('__')
-                ],
-            property = [
-                CallableInfo(name=name, kind='property', callable=getattr(obj_class, name))
-                    for name, _ in get_prop
-                        if not name.startswith('__')
-                ],
-            data = [
-                CallableInfo(name=name, kind='data', callable=getattr(obj_class, name))
-                    for name, val in inspect.getmembers(obj_class)
-                        if not name.startswith('__') and not callable(val)
-                ],
-            )
-
-        # 返回指定类型的可调用对象
-        if kind == 'all':
-            return cls_callables['function'] \
-                    + cls_callables['method'] \
-                    + cls_callables['property'] \
-                    + cls_callables['data']
-        else:
-            return cls_callables[kind]
-    return (get_callables,)
-
-
-@app.cell
-def _(get_callables, test):
-    f1 = get_callables(obj=test)[2]
-    f1.callable
-    return
-
-
-@app.cell
-def _(Test, get_callables):
-    f2 = get_callables(obj=Test)[2]
-    f2.callable()
-    return
-
-
-@app.cell
-def _(Data1, get_callables):
-    get_callables(obj=Data1, kind='data')[1]
-    return
-
-
-@app.cell
-def _(Data1, get_callables):
-    get_callables(obj=Data1)
-    return
-
-
-@app.function
-def tttt():
-    ...
-
-
-@app.cell
-def _():
-    tttt.__class__
-    return
-
-
-@app.cell
-def _(Test, test):
-    print(type(Test))
-    print(type(test))
-    print(type(tttt))
-    return
-
-
-@app.cell
-def _():
-    sec_props = {
-        "A": 1.,
-        "E": 2.,
-        "J": 3.,
-        "I": 0.1
-        }
-    return (sec_props,)
-
-
-@app.cell
-def _(sec_props):
-    sec_props['C'] = 0.01
-    print(sec_props)
-    return
+    return (np,)
 
 
 @app.cell
@@ -257,7 +63,6 @@ def _():
     x = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     y = [0, 2, 23, 44, 56, 124]
     print(trapezoid(y, x))
-
     return
 
 
@@ -289,6 +94,58 @@ def _():
 
     for i in r:
         print(i)
+    return
+
+
+@app.cell
+def _(np):
+    import warnings
+    def get_angle(p1, p2, dof, ndim: int = 3, deg: bool = False):
+
+        """
+        计算 `两点连线` 于 `指定维度正交轴线(正向)` 的夹角
+            - `dof = 2` 代表第二个维度的正交轴线
+        """
+
+        if len(p1) > ndim:
+            raise ValueError(f"ndim of point length must less than {ndim}, but got p1: '{len(p1)}'")
+        if len(p2) > ndim:
+            raise ValueError(f"ndim of point length must less than {ndim}, but got p2: '{len(p2)}'")
+
+        if len(p1) < ndim and len(p2) == ndim: # 其中一个点满足维度要求
+            warnings.warn(f"Input p1 is lower-dimensional; zero-padding applied.", UserWarning)
+        if len(p1) == ndim and len(p2) < ndim:
+            warnings.warn(f"Input p2 is lower-dimensional; zero-padding applied.", UserWarning)
+
+
+        # 填充维度
+        p1 = np.pad(np.array(p1), (0, ndim - np.array(p1).size))
+        p2 = np.pad(np.array(p2), (0, ndim - np.array(p2).size))
+
+        # 两点连线距离
+        distance = np.linalg.norm(
+            # np.delete(p2, dof - 1) - np.delete(p1, dof - 1)
+            p2 - p1
+            )
+
+        # 指定方法的正交距离
+        orthogonal = p2[dof-1] - p1[dof-1]
+
+        # 计算夹角
+        angle = np.arccos(orthogonal / distance)
+
+        if deg:
+            return np.degrees(angle) # 计算并返回角度（度）
+        else:
+            return angle # 计算并返回角度（弧度）
+
+    get_angle(
+        (0, 0, 0),
+        (100, 1, 1),
+        dof=2,
+        ndim=3,
+        deg=True
+        )
     return
 
 

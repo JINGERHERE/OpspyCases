@@ -29,7 +29,7 @@ from script import UNIT
 from script import AnalysisTools as ATs
 from script.base import random_color
 
-from Part_Model_RockPierModel import RockPierModelTEST
+from ModelHub import RockPierModelTEST
 
 
 import multiprocessing as mulp

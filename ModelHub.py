@@ -3,7 +3,7 @@
 
 """
 # ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-@File    ：Part_Model_RockPierModel.py
+@File    ：ModelHub.py
 @Date    ：2025/8/1 20:18
 @IDE     ：PyCharm
 @Author  ：Wang Jing
@@ -13,7 +13,6 @@
 
 
 from collections import namedtuple
-from encodings.punycode import T
 import os
 import sys
 import time
@@ -43,15 +42,78 @@ from script.base import rich_showwarning
 import warnings
 warnings.showwarning = rich_showwarning
 
-# from Part_Model_CreateBRB import create_brb_lite
+from pathlib import Path
+import ops_utilities as opsu
 
 """
 # --------------------------------------------------
-# ========== < Part_Model_RockPierModel > ==========
+# ========== < ModelHub > ==========
 # --------------------------------------------------
 """
+
+class RockPierModel:
+    
+    def __init__(
+        self,
+        manager: opsu.pre.ModelManager,
+        # case_name: str,
+        data_path: Union[Path, str, Literal['']] = ''
+        ) -> None:
+        
+        """
+        截面模型实例类
+            - 
+        
+        Args:
+            manager (opsu.pre.ModelManager): 模型管理器对象。
+            case_name (str): 当前工况名称。
+            data_path (Union[Path, str, Literal['']], optional): 保存路径。 `默认值：` '当前路径'.
+        
+        Returns:
+            None: 不返回任何值。
+        
+        Raises:
+            ValueError: 截面序号超出范围。
+        
+        """
+        
+        # 管理器
+        self.MM = manager.wipe() # 清空管理器
+        # self.MM.wipe()
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面的返回数据对象
+        self.SEC_beam: opst.pre.section.FiberSecMesh # 盖梁
+        self.SEC_pier: opst.pre.section.FiberSecMesh # 墩柱
+        self.SEC_cont: opst.pre.section.FiberSecMesh # 接触面
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 编号
+        self.node_load = self.MM.next_tag(category='node', label='load')
+        self.node_fix = self.MM.next_tag(category='node', label='fix')
+        self.ele_sec = self.MM.next_tag(category='element', label=case_name)
+        
+        self.ts = self.MM.next_tag(category='timeSeries', label='ts')
+        self.axial_force = self.MM.next_tag(category='pattern')
+        self.ctrl_force = self.MM.next_tag(category='pattern', label='ctrl_force')
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 保存路径
+        self.data_path = Path('./')
+        if data_path:
+            # 数据路径
+            self.data_path = Path(data_path)
+        
+        # 创建数据路径
+        self.data_path.mkdir(parents=True, exist_ok=True)
+        opst.post.set_odb_path(str(self.data_path)) # opstool 数据路径
+
+
+
+
 
 class RockPierModelTEST:
+    
     
     def __init__(self):
         
