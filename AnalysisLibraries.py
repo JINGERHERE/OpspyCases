@@ -99,7 +99,7 @@ class StaticAnalysis:
     def analyze(
         self,
         ctrl_node: int, dof: Union[int, Literal[1, 2, 3, 4, 5, 6]],
-        targets: Union[list, tuple, np.ndarray], max_step: float,
+        targets: Union[float, list, tuple, np.ndarray], max_step: float,
         ) -> Tuple[np.ndarray, np.ndarray]:
 
         """
