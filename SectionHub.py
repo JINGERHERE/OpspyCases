@@ -168,7 +168,7 @@ class SectionHub:
 
         # 定义截面
         SEC.to_opspy_cmds(
-            secTag=sec_tag, GJ=sec_props["J"] * ConcHub.get_G("C40") * UNIT.mpa
+            secTag=sec_tag, GJ=sec_props["J"] * ConcHub.get_G("C25") * UNIT.mpa
         )
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
@@ -254,13 +254,6 @@ class SectionHub:
         bar_dia = 8 * UNIT.mm  # 钢筋直径
         bar_n = 16  # 纵筋个数
 
-        # 材料控制
-        fc = 25 * UNIT .mpa # 混凝土抗压强度 /32.8
-        Ec = 29.3 * UNIT.gpa # 混凝土弹性模量
-
-        fy = 400 * UNIT.mpa # 钢筋屈服强度 /526.2
-        Es = 190 * UNIT.gpa # 钢筋弹性模量
-
         # 轮廓线
         cover_outline = opst.pre.section.create_circle_points(xo=[0, 0], radius=R - cover, n_sub=30) # 保护层轮廓线
         # 生成网格形状
@@ -279,7 +272,7 @@ class SectionHub:
             xo=[0, 0],
             radius=R - cover - bar_dia / 2.0,
             dia=bar_dia,
-            n=bar_n,
+            n=bar_n + 1, # 计数起点为 0
             ops_mat_tag=rebar_tag,
             color="red",
         )
@@ -299,7 +292,7 @@ class SectionHub:
         fcc, ecc, eccu = Mander.circular(
             hoop="Circular",  # 箍筋类型，Circular圆形箍筋，Spiral螺旋形箍筋
             fco=fc,
-            d=R * 2.0,  # 箍筋直径
+            d=R * 2.0,  # 截面直径
             coverThick=cover,  # 保护层厚度
             roucc=sec_props["rho_rebar"],  # 纵筋配筋率, 计算时只计入约束混凝土面积
             s=85 * UNIT.mm,  # 箍筋纵向间距（螺距）
@@ -307,7 +300,7 @@ class SectionHub:
             fyh=487.8 * UNIT.mpa,  # 箍筋屈服强度(MPa)
         )
         # 钢筋
-        fy, Es = 400 * UNIT.mpa, 190. * UNIT.gpa
+        fy, Es = 400.2 * UNIT.mpa, 190.0 * UNIT.gpa
 
         # ops 材料参数
         cover_params = dict(fc=-fc, ec=-ec, ecu=-ecu, Ec=Ec)
@@ -325,7 +318,7 @@ class SectionHub:
 
         # 定义截面
         SEC.to_opspy_cmds(
-            secTag=sec_tag, GJ=sec_props["J"] * ConcHub.get_G("C40") * UNIT.mpa
+            secTag=sec_tag, GJ=sec_props["J"] * ConcHub.get_G("C25") * UNIT.mpa
         )
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"

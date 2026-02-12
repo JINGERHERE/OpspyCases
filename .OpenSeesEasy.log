@@ -3,4 +3,140 @@
 # Please refer to the last item for error reporting details.
 # Please refer to the last item for error reporting details.
 # ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-2026-02-12 16:00:08 START: 
+2026-02-12 20:11:30 START: 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+DiagonalDirectSolver::solve() -  aii = 0 (i, aii): (3, 0)
+WARNING Linear::solveCurrentStep() -the LinearSOE failed in solve()
+DirectIntegrationAnalysis::analyze() - the Algorithm failed at time 0
+OpenSees > analyze failed, returned: -3 error flag
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avy 
+Parameter::addComponent 1 -- no objects were able to identify parameter
+Avz 
