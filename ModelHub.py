@@ -16,28 +16,19 @@ from collections import namedtuple
 import os
 import sys
 import time
-import warnings
-from typing import Literal, TypeAlias, Union, Callable, Any, Optional, TypedDict
+from pathlib import Path
 import matplotlib.pyplot as plt
-import rich
+
+
 import numpy as np
 import pandas as pd
 import xarray as xr
+from typing import Literal, TypeAlias, Union, Callable, Any, Optional, TypedDict
+
 import openseespy.opensees as ops
 import opstool as opst
 import opstool.vis.plotly as opsplt
 import opstool.vis.pyvista as opsvis
-from inspect import currentframe as curt_fra
-from itertools import batched, product, pairwise
-
-# from script.pre import NodeTools
-# from script.base import random_color
-# from script import UNIT, PVs, ModelCreateTools
-# from script.post import DamageStateTools
-# from script.base import rich_showwarning
-
-from pathlib import Path
-
 
 import ops_utilities as opsu
 from ops_utilities.pre import AutoTransf as ATf
@@ -61,16 +52,13 @@ class RockPierModel:
     def __init__(
         self,
         manager: opsu.pre.ModelManager,
-        # case_name: str,
         data_path: Union[Path, str, Literal[""]] = "",
     ) -> None:
         """
-        截面模型实例类
-            -
+        自复位桥墩模型实例
 
         Args:
             manager (opsu.pre.ModelManager): 模型管理器对象。
-            case_name (str): 当前工况名称。
             data_path (Union[Path, str, Literal['']], optional): 保存路径。 `默认值：` '当前路径'.
 
         Returns:
@@ -91,17 +79,6 @@ class RockPierModel:
         self.SEC_cont: opst.pre.section.FiberSecMesh  # 接触面
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # OPSE = opsu.pre.OpenSeesEasy(manager=self.MM)
-        # # 编号
-        # self.node_load = self.MM.next_tag(category='node', label='load')
-        # self.node_fix = self.MM.next_tag(category='node', label='fix')
-        # self.ele_sec = self.MM.next_tag(category='element', label=case_name)
-
-        # self.ts = self.MM.next_tag(category='timeSeries', label='ts')
-        # self.axial_force = self.MM.next_tag(category='pattern')
-        # self.ctrl_force = self.MM.next_tag(category='pattern', label='ctrl_force')
-
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 保存路径
         self.data_path = Path("./")
         if data_path:
@@ -110,10 +87,19 @@ class RockPierModel:
 
         # 创建数据路径
         self.data_path.mkdir(parents=True, exist_ok=True)
-        opst.post.set_odb_path(str(self.data_path))  # opstool 数据路径
 
-    def model(self, Kfit: float = 0., info: bool = True):
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+    def model(self, Kfit: float = 0.0, info: bool = True) -> None:
+        """
+        创建 < 自复位桥墩 > 模型
+
+        Args:
+            Kfit (float, optional): 模型收敛刚度拟合。默认值为 0.。
+            info (bool, optional): 是否显示模型信息。默认值为 True。
+
+        Returns:
+            None: 不返回任何值。
+        """
+
         # 桥墩尺寸控制
         L = 1950.0 * UNIT.mm  # 盖梁长
         PierH = 2400.0 * UNIT.mm  # 墩柱高
@@ -619,11 +605,15 @@ class RockPierModel:
         PT_ele = {
             "pier_1_PT": OPSE.element(
                 "Truss",
-                *(PT_node["pier_1"]["top"], PT_node["pier_1"]["base"]), PT_area, PT_mat
+                *(PT_node["pier_1"]["top"], PT_node["pier_1"]["base"]),
+                PT_area,
+                PT_mat,
             ),
             "pier_2_PT": OPSE.element(
                 "Truss",
-                *(PT_node["pier_2"]["top"], PT_node["pier_2"]["base"]), PT_area, PT_mat
+                *(PT_node["pier_2"]["top"], PT_node["pier_2"]["base"]),
+                PT_area,
+                PT_mat,
             ),
         }
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
@@ -815,28 +805,36 @@ class RockPierModel:
         # 自由度继承以底部节点为主 ----- ----- -----
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 将缓存同步至管理器
-        OPSE.get_manager()
+        # 刷新 将缓存同步至管理器
+        OPSE.refresh()
 
         # 配置材料 耗能钢筋
         self.MM.tag_config(
             "uniaxialMaterial",
             tag=ED_mat,
             label="ED",
-            params={"fy": ED_fy, "Es": ED_Es, "area": ED_area},
+            params={"fy": ED_fy, "Es": ED_Es, "area": ED_area, "yield": ED_fy / ED_Es},
         )
         # 配置材料 预应力
         self.MM.tag_config(
             "uniaxialMaterial",
             tag=PT_mat,
             label="PT",
-            params={"fy": PT_fy, "Es": PT_Es, "force": PT_f},
+            params={"fy": PT_fy, "Es": PT_Es, "force": PT_f, "yield": PT_fy / PT_Es},
         )
 
         # 配置节点 - 位移控制点
         self.MM.tag_config(
             "node", tag=bent_cap_node["start"], label="disp_ctrl"
-        ) # 位移控制节点
+        )  # 位移控制节点
+
+        # 配置单元 - 底部接触面
+        self.MM.tag_config(
+            "element", tag=aid_ele["pier_1"]["pier_base"], label="pier_1_surf"
+        )
+        self.MM.tag_config(
+            "element", tag=aid_ele["pier_2"]["pier_base"], label="pier_2_surf"
+        )
 
         # 配置单元 - 耗能钢筋
         self.MM.tag_config("element", tag=ED_ele["pier_1"]["ED1"], label="pier_1_ED_1")
@@ -852,7 +850,10 @@ class RockPierModel:
         # 输出数据库
         self.MM.to_excel(self.data_path / "ModelManager.xlsx")
         # 输出模型
-        ops.printModel('-JSON', '-file', str(self.data_path / "thisModel.json"))
+        ops.printModel("-JSON", "-file", str(self.data_path / "thisModel.json"))
+        # 可视化模型
+        fig = opst.vis.plotly.plot_model()
+        fig.write_html(self.data_path / "thisModel.html")
         
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 节点收集
@@ -877,7 +878,6 @@ class RockPierModel:
         # 墩柱节点质量
         for i in nodes_pier_1 + nodes_pier_2:
             OPSE.mass(i, *(mass_pier, mass_pier, mass_pier), *(0.0, 0.0, 0.0))
-
 
 
 """
@@ -925,17 +925,18 @@ if __name__ == "__main__":
     ops.loadConst("-time", 0.0)
 
     ctrl = 1
-    disp_path = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
+    # disp_path = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
+    disp_path = 0.12 * UNIT.m
 
     disp_pattern = 101
     ops.pattern("Plain", disp_pattern, ts)
     ops.load(ctrl, *(0.0, 1.0, 0.0, 0.0, 0.0, 0.0))  # 节点荷载
 
-    d = ANL.StaticAnalysis(disp_pattern,ODB)
+    d = ANL.StaticAnalysis(disp_pattern, ODB)
     x, y = d.analyze(ctrl_node=ctrl, dof=2, targets=disp_path, max_step=0.001)
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-    plt.close('all')
+    plt.close("all")
     plt.plot(x, y)
     plt.xlim(-0.12, 0.12)
     plt.ylim(-200, 200)
@@ -949,5 +950,3 @@ if __name__ == "__main__":
     )
     # fig.show()
     fig.write_html(data_path / "thisModel.html")
-
-

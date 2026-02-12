@@ -14,25 +14,35 @@ app = marimo.App()
 
 @app.cell
 def _():
+    import sys
     import numpy as np
     import pandas as pd
     import matplotlib.pyplot as plt
     import inspect
+    from pathlib import Path
+    from itertools import count
     from typing import NamedTuple, List, Type, Union, Literal, Optional
     from collections import namedtuple
     from dataclasses import dataclass, fields, asdict
-    return
+    return (Path,)
 
 
 @app.cell
-def _():
-    def tt(*args):
-        print(args)
-
-    t  =(1, 2, 3, 4, 5, 6, 7)
-    # *rt, = reversed(t)
-    tt(*reversed(t))
+def _(Path):
+    fit: float = 1.5e3
+    data_path = Path().cwd() / f"model_fit_{fit:.2e}"
+    data_path.mkdir(parents=True, exist_ok=True)
+    print(f'{fit: .2e}')
     return
+
+
+app._unparsable_cell(
+    r"""
+    ttt = ["strain", "s"]
+    if ttt isin
+    """,
+    name="_"
+)
 
 
 if __name__ == "__main__":

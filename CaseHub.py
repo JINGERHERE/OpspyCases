@@ -21,13 +21,13 @@ import opstool as opst
 import openseespy.opensees as ops
 import matplotlib.pyplot as plt
 import rich
+from pathlib import Path
 
 import opstool.vis.plotly as opsplt
 import opstool.vis.pyvista as opsvis
 
 import ops_utilities as opsu
-from ops_utilities.pre import AutoTransf as ATf
-from SectionHub import SectionHub
+from ModelHub import RockPierModel
 from ModelUtilities import UNIT, MM, OPSE
 import AnalysisLibraries as ANL
 
@@ -44,24 +44,184 @@ from joblib import Parallel, delayed
 
 "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
 # 试验原始数据
-test_data_path = './.RAW_DATA'
-data_file = '/SCB.xlsx'
+test_data_path = "./.RAW_DATA"
+data_file = "/SCB.xlsx"
 # data_file = '/SCB_EDB.xlsx'
 # 导入
 test_data = pd.read_excel(
-    f'{test_data_path + data_file}',
+    f"{test_data_path + data_file}",
     # header=0,
 )
 # 清洗数据 转换为数值
-test_data['m'] = pd.to_numeric(test_data['m'], errors='coerce')
-test_data['kN']  = pd.to_numeric(test_data['kN'],  errors='coerce')
+test_data["m"] = pd.to_numeric(test_data["m"], errors="coerce")
+test_data["kN"] = pd.to_numeric(test_data["kN"], errors="coerce")
 
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-class ANALYSIS_CASE:
-    @classmethod
-    def push(cls):
-        ...
 
+
+class CaseHub:
+
+    def __init__(
+        self, manager: opsu.pre.ModelManager, data_path: Path, fit: float = 0
+    ) -> None:
+        """
+        模型工况实例
+
+        Args:
+            manager (opsu.pre.ModelManager): 模型管理器
+            data_path (Path): 数据路径
+            fit (float, optional): 模型拟合参数. Defaults to 0.
+
+        Returns:
+            None
+        """
+
+        # 创建数据路径
+        self.case_name = f"model_fit_{fit:.2e}" if fit else "model"
+        self.data_path = data_path / self.case_name
+        self.data_path.mkdir(parents=True, exist_ok=True)
+
+        # 数据库
+        self.MM = manager
+
+        # 实例化模型
+        self.model = RockPierModel(self.MM, self.data_path)
+        self.model.model(Kfit=fit, info=False)
+
+        # 时间序列
+        self.ts = OPSE.timeSeries("Linear")
+
+        # 数据库
+        opst.post.set_odb_path(str(self.data_path))  # 数据库输出路径
+        opst.post.set_odb_format(odb_format="zarr")  # 数据库输出格式
+        # 创建数据库
+        self.ODB = opst.post.CreateODB(
+            odb_tag=self.case_name,
+            elastic_frame_sec_points=9,
+            fiber_ele_tags="ALL",
+            zlib=True
+        )
+
+    def gravity(self, save_odb: bool = True) -> None:
+        """
+        重力分析方法
+
+        Args:
+            save_odb (bool, optional): 是否保存数据库. Defaults to True.
+
+        Returns:
+            None
+        """
+
+        # 时间荷载重置
+        ops.loadConst("-time", 0.0)
+
+        # 参数
+        g = 9.80665 * (UNIT.m / UNIT.sec**2)
+
+        # 重力荷载模式
+        OPSE.pattern("Plain", self.ts)
+        opst.pre.create_gravity_load(direction="Z", factor=-g)
+
+        # 实例化
+        case_grav = ANL.GravityAnalysis(self.ODB)
+        # 执行分析
+        case_grav.analyze(10)
+
+        # 保存数据库
+        if save_odb:
+            self.ODB.save_response()
+
+    def _static(self, targets, incr):
+        """
+        < 内部方法 > 静力分析方法
+
+        Args:
+            targets (float): 位移目标路径
+            incr (float): 每一步增量
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: 位移路径, 力路径
+                - disp: 位移路径
+                - force: 力路径 (控制力 * 荷载乘子)
+        """
+
+        # 时间荷载重置
+        ops.loadConst("-time", 0.0)
+
+        # 参数
+        ctrl = self.MM.get_tag("node", label="disp_ctrl")[0]
+        force = 1.0
+
+        # 静力荷载模式
+        pattern = OPSE.pattern("Plain", self.ts)
+        ops.load(ctrl, *(0.0, force, 0.0, 0.0, 0.0, 0.0))  # 节点荷载
+
+        # 实例化
+        case_static = ANL.StaticAnalysis(pattern, self.ODB)
+        # 执行分析
+        disp, froce_lbd = case_static.analyze(
+            ctrl_node=ctrl, dof=2, targets=targets, max_step=incr
+        )
+
+        return disp, force * froce_lbd
+
+    def push(self):
+        """
+        Pushover 分析方法
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: 位移路径, 力路径
+                - disp: 位移路径
+                - force: 力路径
+        """
+
+        # 重力分析
+        self.gravity(save_odb=False)
+
+        # 位移路径
+        incr = 0.001 * UNIT.m
+        disp_path = 0.12 * UNIT.m
+
+        # 静力分析
+        disp, force = self._static(targets=disp_path, incr=incr)
+
+        # 保存数据库
+        self.ODB.save_response()
+
+        return disp, force
+
+    def cycle(self):
+        """
+        Cycle 分析方法
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: 位移路径, 力路径
+                - disp: 位移路径
+                - force: 力路径
+        """
+
+        # 重力分析
+        self.gravity(save_odb=False)
+
+        # 位移路径
+        incr = 0.002 * UNIT.m
+        # 全程
+        disp_1 = np.arange(0.003, 0.015 + 0.003, 0.003)  # 第一阶段 控制位移幅值
+        disp_2 = np.arange(0.016, 0.12 + 0.0075, 0.0075)  # 第二节段 控制唯一幅值
+        disp_step = np.repeat(np.concatenate((disp_1, disp_2)), 3)  # 合并后 重复三次
+        disp_pairs = np.stack((disp_step, -disp_step), axis=1).flatten()  # 正负成对
+        disp_path = np.concatenate(([0.0], disp_pairs, [0.0])) * UNIT.m  # 添加首尾
+        # 最大圈
+        # disp_path = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
+
+        # 静力分析
+        disp, force = self._static(targets=disp_path, incr=incr)
+
+        # 保存数据库
+        self.ODB.save_response()
+
+        return disp, force
 
 
 """
@@ -70,45 +230,17 @@ class ANALYSIS_CASE:
 # --------------------------------------------------
 """
 if __name__ == "__main__":
-    
-    # 根目录
-    root_file = f'./OutData'
-    
-    # 工况列表
-    CASE_LIST = [
-        {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': False,},
-        {'ROOT_PATH': root_file, 'Ke':  1., 'CYCLE_MODE': True,},
-    ]
 
-    # 是否启用并行计算
-    if len(CASE_LIST) >= 2:
-        PARALLEL: bool = True
-    else:
-        PARALLEL: bool = False
+    def case(fit: float):
+        # 根目录
+        data_path = Path().cwd() / "OutData"
+        data_path.mkdir(parents=True, exist_ok=True)
+
+        ch = CaseHub(MM, data_path, fit=fit)
+        ch.gravity()
+        disp, force = ch.push()
+        # disp, force = ch.cycle()
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-    START = time.time() # 计时
 
-    if PARALLEL:
-        '''并行计算：joblib模块'''
-        # CPU核心数
-        n_cpu = mulp.cpu_count()
-        rich.print(f'# 计算机核心数：{n_cpu}')
-
-        # 并行计算
-        Parallel(n_jobs=-1)(
-            delayed(CASE_MODEL)(**case) for case in CASE_LIST
-        )
-
-    else:
-        '''正常计算：for循环'''
-        for case in CASE_LIST:
-            CASE_MODEL(**case)
-
-    "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-    # 打印完成信息
-    COLOR = random_color()
-    rich.print(f'[bold {COLOR}] :tada: DONE: All Model Analyze Successfully ! :tada: [/bold {COLOR}]')
-    rich.print(f'[bold {COLOR}] # ===== ===== ===== ===== << END >> ===== ===== ===== ===== # [/bold {COLOR}]\n')
-
-    rich.print(f'总用时：{time.time() - START} s')
+    Parallel(n_jobs=-1)(delayed(case)(i) for i in [0.0, 1.4e3, 1.5e3, 1.6e3])
