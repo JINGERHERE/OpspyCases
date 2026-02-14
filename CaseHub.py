@@ -57,8 +57,6 @@ test_data["m"] = pd.to_numeric(test_data["m"], errors="coerce")
 test_data["kN"] = pd.to_numeric(test_data["kN"], errors="coerce")
 
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
-
-
 class CaseHub:
 
     def __init__(
@@ -83,10 +81,25 @@ class CaseHub:
 
         # 数据库
         self.MM = manager
-
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 实例化模型
         self.model = RockPierModel(self.MM, self.data_path)
-        self.model.model(Kfit=fit, info=False)
+        self.model.model(info=False)
+        # if BRB:
+        #     self.model.BRB(info=False)
+
+        # 输出模型
+        self.MM.to_excel(self.data_path / "ModelManager.xlsx")
+        # 输出模型
+        ops.printModel("-JSON", "-file", str(self.data_path / "thisModel.json"))
+        # 可视化模型
+        fig = opst.vis.plotly.plot_model(show_local_axes=True)
+        fig.write_html(self.data_path / "thisModel.html")
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 实例化模型
+        self.model = RockPierModel(self.MM, self.data_path)
+        self.model.model(fit=fit, info=False)
 
         # 时间序列
         self.ts = OPSE.timeSeries("Linear")

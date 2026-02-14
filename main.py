@@ -33,23 +33,13 @@ from joblib import Parallel, delayed
 # --------------------------------------------------
 """
 
-# 关闭图形显示
-matplotlib.use("Agg")
-
-# 终端根目录
-root_path = Path().cwd()
-
-# 试验原始数据
-test_file = "SCB.xlsx"
-# test_file = 'SCB_EDB.xlsx'
-# 导入
-test_data = pd.read_excel(root_path / ".RAW_DATA" / test_file)
-# 清洗数据 转换为数值
-disp_test = pd.to_numeric(test_data["m"], errors="coerce") * UNIT.m
-force_test = pd.to_numeric(test_data["kN"], errors="coerce") * UNIT.kn
-
-
 class AnalysisCase:
+
+    # 关闭图形显示
+    matplotlib.use("Agg")
+
+    # 终端根目录
+    root_path = Path().cwd()
 
     # 数据路径
     data_path = root_path / "OutData"
@@ -66,6 +56,17 @@ class AnalysisCase:
             CH = CaseHub(MM, cls.data_path / "push", fit)
             disp, force = CH.push()  # 分析
 
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 试验原始数据
+        test_file = "SCB.xlsx"
+        # test_file = 'SCB_EDB.xlsx'
+        
+        # 导入
+        test_data = pd.read_excel(cls.root_path / ".RAW_DATA" / test_file)
+        # 清洗数据 转换为数值
+        disp_test = pd.to_numeric(test_data["m"], errors="coerce") * UNIT.m
+        force_test = pd.to_numeric(test_data["kN"], errors="coerce") * UNIT.kn
+        
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 后处理实例
         PP = PostProcess(MM, CH.case_name, CH.data_path, print_info=False)

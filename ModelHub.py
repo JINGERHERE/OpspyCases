@@ -11,14 +11,8 @@
 # ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
 """
 
-
-from collections import namedtuple
-import os
-import sys
-import time
 from pathlib import Path
 import matplotlib.pyplot as plt
-
 
 import numpy as np
 import pandas as pd
@@ -88,12 +82,12 @@ class RockPierModel:
         # 创建数据路径
         self.data_path.mkdir(parents=True, exist_ok=True)
 
-    def model(self, Kfit: float = 0.0, info: bool = True) -> None:
+    def model(self, fit: float = 0.0, info: bool = True) -> None:
         """
         创建 < 自复位桥墩 > 模型
 
         Args:
-            Kfit (float, optional): 模型收敛刚度拟合。默认值为 0.。
+            fit (float, optional): 模型收敛刚度拟合。默认值为 0.。
             info (bool, optional): 是否显示模型信息。默认值为 True。
 
         Returns:
@@ -390,10 +384,10 @@ class RockPierModel:
             "ENT": OPSE.uniaxialMaterial("ENT", 20 * UNIT.gpa),
         }
         # 用于刚度拟合
-        if Kfit:
-            fit = OPSE.uniaxialMaterial("Elastic", Kfit)
+        if fit:
+            fit_mat = OPSE.uniaxialMaterial("Elastic", fit)
         else:
-            fit = aid_mat["fix"]
+            fit_mat = aid_mat["fix"]
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 盖梁单元
@@ -638,7 +632,7 @@ class RockPierModel:
 
         # 材料 对应 自由度
         dir_mats = (
-            *(aid_mat["ENT"], fit, fit),
+            *(aid_mat["ENT"], fit_mat, fit_mat),
             *(aid_mat["free"], aid_mat["free"], aid_mat["free"]),
         )  # 零长单元局部方向
         dirs = (1, 2, 3, 4, 5, 6)
@@ -799,7 +793,7 @@ class RockPierModel:
         OPSE.equalDOF(*reversed(link_surf["pier_2"]["top"]), *surf_dof_equal)
         OPSE.equalDOF(*reversed(link_surf["pier_2"]["mid"]), *surf_dof_equal)
         # 柱底滑移控制
-        if not Kfit:
+        if not fit:
             OPSE.equalDOF(*reversed(link_surf["pier_1"]["base"]), *surf_dof_equal)
             OPSE.equalDOF(*reversed(link_surf["pier_2"]["base"]), *surf_dof_equal)
         # 自由度继承以底部节点为主 ----- ----- -----
@@ -847,36 +841,30 @@ class RockPierModel:
         self.MM.tag_config("element", tag=PT_ele["pier_2_PT"], label="PT_2")
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 输出数据库
-        self.MM.to_excel(self.data_path / "ModelManager.xlsx")
-        # 输出模型
-        ops.printModel("-JSON", "-file", str(self.data_path / "thisModel.json"))
-        # 可视化模型
-        fig = opst.vis.plotly.plot_model()
-        fig.write_html(self.data_path / "thisModel.html")
-        
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 节点收集
         nodes_beam = list(bent_cap_node.values())
-        nodes_pier_1 = list(pier_1_node["top"].values()) + list(
-            pier_1_node["base"].values()
+        nodes_pier = (
+            list(pier_1_node["top"].values())
+            + list(pier_1_node["base"].values())
+            + list(pier_2_node["top"].values())
+            + list(pier_2_node["base"].values())
         )
-        nodes_pier_2 = list(pier_2_node["top"].values()) + list(
-            pier_2_node["base"].values()
-        )
+
         # 计算节点质量
         mass_beam = (
             L * self.MM.get_param("section", "bent_cap", "A") * rho / len(nodes_beam)
         )  # 盖梁质量
         mass_pier = (
-            L * self.MM.get_param("section", "pier_col", "A") * rho / len(nodes_pier_1)
+            (2 * PierH)
+            * self.MM.get_param("section", "pier_col", "A") * rho 
+            / len(nodes_pier)
         )  # 墩柱质量
 
         # 盖梁节点质量
         for i in bent_cap_node.values():
             OPSE.mass(i, *(mass_beam, mass_beam, mass_beam), *(0.0, 0.0, 0.0))
         # 墩柱节点质量
-        for i in nodes_pier_1 + nodes_pier_2:
+        for i in nodes_pier:
             OPSE.mass(i, *(mass_pier, mass_pier, mass_pier), *(0.0, 0.0, 0.0))
 
 
