@@ -12,23 +12,15 @@
 """
 
 
-from collections import namedtuple
-import os
-import sys
-import time
-from pathlib import Path
-import matplotlib.pyplot as plt
-
-
 import numpy as np
 import pandas as pd
 import xarray as xr
+from pathlib import Path
+import matplotlib.pyplot as plt
 from typing import Literal, TypeAlias, Union, Callable, Any, Optional, TypedDict
 
 import openseespy.opensees as ops
 import opstool as opst
-import opstool.vis.plotly as opsplt
-import opstool.vis.pyvista as opsvis
 
 import ops_utilities as opsu
 from ops_utilities.pre import AutoTransf as ATf
@@ -39,6 +31,7 @@ import AnalysisLibraries as ANL
 import warnings
 
 warnings.showwarning = opsu.rich_showwarning
+
 
 """
 # --------------------------------------------------
@@ -88,12 +81,12 @@ class TwoPierModel:
         # 创建数据路径
         self.data_path.mkdir(parents=True, exist_ok=True)
 
-    def model(self, Kfit: float = 0.0, info: bool = True) -> None:
+    def model(self, fit: float = 0.0, info: bool = True) -> None:
         """
         创建 < 双柱式桥墩 > 模型
 
         Args:
-            Kfit (float, optional): 模型收敛刚度拟合。默认值为 0.。
+            fit (float, optional): 模型收敛刚度拟合。默认值为 0.。
             info (bool, optional): 是否显示模型信息。默认值为 True。
 
         Returns:
@@ -205,7 +198,7 @@ class TwoPierModel:
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 辅助节点
-        aid_node = {
+        self.aid_node = {
             "brb_top": OPSE.node(0.0, PierW / 2.0 - 0.2, PierH),
             "brb_base": OPSE.node(0.0, -PierW / 2.0 + 0.2, 0.0),
         }
@@ -214,7 +207,7 @@ class TwoPierModel:
         # 节点约束
         OPSE.fix(pier_node["pier_1"]["base"], *(1, 1, 1, 1, 1, 1))
         OPSE.fix(pier_node["pier_2"]["base"], *(1, 1, 1, 1, 1, 1))
-        OPSE.fix(aid_node["brb_base"], *(1, 1, 1, 1, 1, 1))
+        OPSE.fix(self.aid_node["brb_base"], *(1, 1, 1, 1, 1, 1))
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 预应力材料
@@ -303,7 +296,7 @@ class TwoPierModel:
             ),
             "beam_brb": OPSE.element(
                 "elasticBeamColumn",
-                *(bent_cap_node["brb"], aid_node["brb_top"]),
+                *(bent_cap_node["brb"], self.aid_node["brb_top"]),
                 *(0.1, Ec, Gc),
                 *(Ubig, Ubig, Ubig),
                 pier_1_transf,
@@ -327,18 +320,15 @@ class TwoPierModel:
             "node", tag=bent_cap_node["start"], label="disp_ctrl"
         )  # 位移控制节点
 
+        # 配置单元 - 塑性铰
+        self.MM.tag_config("element", tag=pier_ele["pier_1"]["e1"], label="pier_1_top")
+        self.MM.tag_config("element", tag=pier_ele["pier_1"]["e9"], label="pier_1_base")
+        self.MM.tag_config("element", tag=pier_ele["pier_2"]["e1"], label="pier_2_top")
+        self.MM.tag_config("element", tag=pier_ele["pier_2"]["e9"], label="pier_2_base")
+
         # 配置单元 - 预应力
         self.MM.tag_config("element", tag=PT_ele["pier_1_PT"], label="PT_1")
         self.MM.tag_config("element", tag=PT_ele["pier_2_PT"], label="PT_2")
-
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 输出数据库
-        self.MM.to_excel(self.data_path / "ModelManager.xlsx")
-        # 输出模型
-        ops.printModel("-JSON", "-file", str(self.data_path / "thisModel.json"))
-        # 可视化模型
-        fig = opst.vis.plotly.plot_model()
-        fig.write_html(self.data_path / "thisModel.html")
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 节点收集
@@ -364,6 +354,64 @@ class TwoPierModel:
         for i in nodes_pier:
             OPSE.mass(i, *(mass_pier, mass_pier, mass_pier), *(0.0, 0.0, 0.0))
 
+    def BRB(self, fit: float = 0, info: bool = True):
+        """
+        创建双柱式桥墩 < BRB > 单元
+
+        Args:
+            info (bool, optional): 是否输出 BRB 参数信息，默认值为 `True`。
+
+        Returns:
+            None: 不返回任何值。
+        """
+
+        # BRB 参数控制
+        ratio = 0.43821
+        gap = 4. * UNIT.mm
+        gapK = 1.8e4
+        bucklingK = 9.0e3
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 纤维截面
+        self.SEC_brb = SectionHub.brb(
+            manager=self.MM, info=info, save_sec=self.data_path
+        )
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面编号
+        sec_tag_brb = self.MM.get_tag("section", label="brb")[0]
+
+        # 截面单元积分
+        integ_brb = OPSE.beamIntegration("Legendre", sec_tag_brb, 5)
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # BRB 非核心单元
+        brb_node_i, brb_node_j = opsu.components.BRB.buckling(
+            node_i=self.aid_node["brb_top"],
+            node_j=self.aid_node["brb_base"],
+            core_ratio=ratio,
+            gap=gap,
+            gapK=gapK,
+            bucklingK=bucklingK,
+            limK=176.7 * UNIT.gpa,
+            linkA=916.7 * UNIT.mm**2,
+            linkE=176.7 * UNIT.gpa,
+            OPSE=OPSE,
+        )
+
+        # BRB 核心单元
+        ele_brb = OPSE.element(
+            "dispBeamColumn",
+            *(brb_node_i, brb_node_j),
+            *(ATf.ndm3(brb_node_i, brb_node_j), integ_brb),
+        )
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 刷新 将缓存同步至管理器
+        OPSE.refresh()
+
+        # 配置材料 预应力
+        self.MM.tag_config("element",tag=ele_brb,label="brb")
 
 """
 # --------------------------------------------------
@@ -373,14 +421,14 @@ class TwoPierModel:
 if __name__ == "__main__":
 
     # 试验原始数据
-    test_data_path = './.RAW_DATA'
-    data_file = '/20230821WJRC.xlsx'
-    data_file_BRB = '/20230826WJBRB.xlsx'
+    test_data_path = "./.RAW_DATA"
+    data_file = "/20230821WJRC.xlsx"
+    # data_file = "/20230826WJBRB.xlsx"
     # 导入
-    test_data = pd.read_excel(f'{test_data_path + data_file}', header=0)
+    test_data = pd.read_excel(f"{test_data_path + data_file}", header=0)
     # 清洗数据 转换为数值
-    test_data['mm'] = pd.to_numeric(test_data['mm'], errors='coerce') * UNIT.mm
-    test_data['N']  = pd.to_numeric(test_data['N'],  errors='coerce') * UNIT.n
+    test_data["mm"] = pd.to_numeric(test_data["mm"], errors="coerce") * UNIT.mm
+    test_data["N"] = pd.to_numeric(test_data["N"], errors="coerce") * UNIT.n
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
 
@@ -432,7 +480,7 @@ if __name__ == "__main__":
 
     "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
     plt.close("all")
-    plt.plot(test_data["mm"], test_data['N'])
+    plt.plot(test_data["mm"], test_data["N"])
     plt.plot(x, y)
     plt.xlim(-0.07, 0.07)
     plt.ylim(-400, 400)

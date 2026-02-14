@@ -41,6 +41,8 @@ MM = opsu.pre.ModelManager(include_start=True)
 OPSE = opsu.pre.OpenSeesEasy()
 
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+
+
 # 绘图方法
 class PlotyHub:
 
@@ -139,6 +141,7 @@ class PlotyHub:
             fig (Figure): 输入的 matplotlib.figure.Figure 对象。
             ax (Axes): 输入的 matplotlib.axes.Axes 对象。
             leg (Legend, optional): 输入的 `leg = ax.legend()` 对象。
+            cbar (Colorbar, optional): 输入的 `cbar = fig.colorbar()` 对象。
 
         Returns:
             Figure: 返回调整后的 matplotlib.figure.Figure 对象。
@@ -214,6 +217,8 @@ class PlotyHub:
         ax2: Axes,
         leg1: Optional[Legend] = None,
         leg2: Optional[Legend] = None,
+        cbar1: Optional[Colorbar] = None,
+        cbar2: Optional[Colorbar] = None,
     ) -> Figure:
         """
         双坐标轴绘图参数调整方法。
@@ -224,6 +229,8 @@ class PlotyHub:
             ax2 (Axes): 输入的 matplotlib.axes.Axes 对象。
             leg1 (Legend, optional): 输入的 `leg1 = ax1.legend()` 对象。
             leg2 (Legend, optional): 输入的 `leg2 = ax2.legend()` 对象。
+            cbar1 (Colorbar, optional): 输入的 `cbar1 = fig.colorbar()` 对象。
+            cbar2 (Colorbar, optional): 输入的 `cbar2 = fig.colorbar()` 对象。
 
         Returns:
             Figure: 返回调整后的 matplotlib.figure.Figure 对象。
@@ -276,10 +283,29 @@ class PlotyHub:
         if leg2 is not None:
             AdjustPlot.adjust_leg(leg2, **leg_params)
 
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 颜色条参数
+        cbar_params = {
+            "label": "",
+            "label_size": 20,
+            "label_pad": 7.0,
+            "ticks": True,
+            "ticks_size": 18,
+            "ticks_pad": 12.0,
+        }
+        # 颜色条1 调整
+        if cbar1 is not None:
+            AdjustPlot.adjust_cbar_y(cbar1, **cbar_params)
+        # 颜色条2 调整
+        if cbar2 is not None:
+            AdjustPlot.adjust_cbar_y(cbar2, **cbar_params)
+
         return fig_adj
 
 
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+
+
 # 数据后处理方法
 class PostProcess:
 
@@ -313,101 +339,80 @@ class PostProcess:
         self.odb_name = odb_name
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 墩柱底接触面单元号
-        pier_1_surf = manager.get_tag(category="element", label="pier_1_surf")  # 单元号
-        pier_2_surf = manager.get_tag(category="element", label="pier_2_surf")  # 单元号
+        # 塑性铰单元号
+        pier_1_top = manager.get_tag(category="element", label="pier_1_top")  # 单元号
+        pier_1_base = manager.get_tag(category="element", label="pier_1_base")  # 单元号
+        pier_2_top = manager.get_tag(category="element", label="pier_2_top")  # 单元号
+        pier_2_base = manager.get_tag(category="element", label="pier_2_base")  # 单元号
+
         # 应变状态实例
-        self.surf_1_SMS = opsu.post.SecMatStates(
+        self.pier_1_top_SMS = opsu.post.SecMatStates(
             odb_tag=odb_name,
-            ele_tag=pier_1_surf[0],
+            ele_tag=pier_1_top[0],
             integ=1,
             print_info=print_info,
             lazy_load=True,
         )
-        self.surf_2_SMS = opsu.post.SecMatStates(
+        self.pier_1_base_SMS = opsu.post.SecMatStates(
             odb_tag=odb_name,
-            ele_tag=pier_2_surf[0],
+            ele_tag=pier_1_base[0],
+            integ=5,
+            print_info=print_info,
+            lazy_load=True,
+        )
+        self.pier_2_top_SMS = opsu.post.SecMatStates(
+            odb_tag=odb_name,
+            ele_tag=pier_2_top[0],
             integ=1,
             print_info=print_info,
             lazy_load=True,
         )
-        # 接触材料应力状态
-        surf_sep_stress = manager.get_param(
-            category="section", label="contact_surf", key="stress_stages"
-        )
-        self.surf_sep_step = min(
-            list(
-                filter(
-                    None,
-                    self.surf_1_SMS.get_combined_steps_mat(
-                        mat_config=surf_sep_stress, data_type="Stresses"
-                    ),
-                )
-            )[-1],
-            list(
-                filter(
-                    None,
-                    self.surf_2_SMS.get_combined_steps_mat(
-                        mat_config=surf_sep_stress, data_type="Stresses"
-                    ),
-                )
-            )[-1],
+        self.pier_2_base_SMS = opsu.post.SecMatStates(
+            odb_tag=odb_name,
+            ele_tag=pier_2_base[0],
+            integ=5,
+            print_info=print_info,
+            lazy_load=True,
         )
 
-        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 耗能钢筋单元号
-        pier1_ED1 = manager.get_tag(category="element", label="pier_1_ED_1")  # 单元号
-        pier1_ED2 = manager.get_tag(category="element", label="pier_1_ED_2")  # 单元号
-        pier2_ED1 = manager.get_tag(category="element", label="pier_2_ED_1")  # 单元号
-        pier2_ED2 = manager.get_tag(category="element", label="pier_2_ED_2")  # 单元号
-        # Truss 单元状态实例
-        self.pier1_ED1_TS = opsu.post.TrussStates(
-            odb_tag=odb_name,
-            ele_tag=pier1_ED1[0],
-            print_info=print_info,
-            lazy_load=True,
+        # 截面材料应变状态
+        sec_strains = manager.get_param(
+            category="section", label="pier_col", key="strain_stages"
         )
-        self.pier1_ED2_TS = opsu.post.TrussStates(
-            odb_tag=odb_name,
-            ele_tag=pier1_ED2[0],
-            print_info=print_info,
-            lazy_load=True,
+
+        # 截面损伤状态
+        pier_1_top_damage = self.pier_1_top_SMS.get_combined_steps_mat(
+            mat_config=sec_strains, data_type="Strains", warn=print_info
         )
-        self.pier2_ED1_TS = opsu.post.TrussStates(
-            odb_tag=odb_name,
-            ele_tag=pier2_ED1[0],
-            print_info=print_info,
-            lazy_load=True,
+        pier_1_base_damage = self.pier_1_base_SMS.get_combined_steps_mat(
+            mat_config=sec_strains, data_type="Strains", warn=print_info
         )
-        self.pier2_ED2_TS = opsu.post.TrussStates(
-            odb_tag=odb_name,
-            ele_tag=pier2_ED2[0],
-            print_info=print_info,
-            lazy_load=True,
+        pier_2_top_damage = self.pier_2_top_SMS.get_combined_steps_mat(
+            mat_config=sec_strains, data_type="Strains", warn=print_info
         )
-        # 耗能钢筋屈服
-        ED_yield_eps = manager.get_param(
-            category="uniaxialMaterial", label="ED", key="yield"
+        pier_2_base_damage = self.pier_2_base_SMS.get_combined_steps_mat(
+            mat_config=sec_strains, data_type="Strains", warn=print_info
         )
-        # 耗能钢筋屈服点 / 比分析捕获的位移多 10 步
-        self.ED_yield_step = min(
-            list(filter(None, self.pier1_ED1_TS.get_steps("Strain", ED_yield_eps)))[1],
-            list(filter(None, self.pier1_ED2_TS.get_steps("Strain", ED_yield_eps)))[1],
-            list(filter(None, self.pier2_ED1_TS.get_steps("Strain", ED_yield_eps)))[1],
-            list(filter(None, self.pier2_ED2_TS.get_steps("Strain", ED_yield_eps)))[1],
-        )  # filter 过滤 None 和 0.0
+
+        # 损伤汇总
+        all_damage = (
+            [i for i in pier_1_top_damage if i is not None and i != 1]
+            + [i for i in pier_1_base_damage if i is not None and i != 1]
+            + [i for i in pier_2_top_damage if i is not None and i != 1]
+            + [i for i in pier_2_base_damage if i is not None and i != 1]
+        )
+        # 屈服 - 极限
+        self.yield_step = min(all_damage)
+        self.limit_step = max(all_damage)
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 预应力单元号
-        PT1 = manager.get_tag(category="element", label="PT_1")  # 单元号
-        PT2 = manager.get_tag(category="element", label="PT_2")  # 单元号
-        # Truss 单元状态实例
-        self.PT1_TS = opsu.post.TrussStates(
-            odb_tag=odb_name, ele_tag=PT1[0], print_info=print_info
-        )
-        self.PT2_TS = opsu.post.TrussStates(
-            odb_tag=odb_name, ele_tag=PT2[0], print_info=print_info
-        )
+        # self.brb_SMS = opsu.post.SecMatStates(
+        #     odb_tag=odb_name,
+        #     ele_tag=self.MM.get_tag(category="element", label="brb")[0],
+        #     integ=3,
+        #     print_info=print_info,
+        #     lazy_load=True,
+        # )
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         ctrl_node = self.MM.get_tag(category="node", label="disp_ctrl")  # 节点号
@@ -415,101 +420,42 @@ class PostProcess:
         self.ctrl_NS = opsu.post.NodalStates(
             odb_tag=odb_name, resp_type="disp", print_info=print_info
         )
-        # 位移数据
-        self.d_ctrl = self.ctrl_NS.get_data(
-            node_tag=ctrl_node[0], dof="UY"
-        )  # 节点位移数据
+        # 节点位移数据
+        self.d_ctrl = self.ctrl_NS.get_data(node_tag=ctrl_node[0], dof="UY")
 
-    def plot_ED_resp(self, pier: Literal[1, 2]) -> None:
-        """
-        绘制耗能钢筋响应图。
+    # def plot_BRB_resp(self) -> None:
+    #     """
+    #     绘制预应力响应图。
 
-        Args:
-            pier (Literal[1, 2]):  墩柱编号。
+    #     Returns:
+    #         None: 不返回任何值。
+    #     """
 
-        Returns:
-            None: 不返回任何值。
-        """
+    #     # 力数据
+    #     x = self.brb_SMS.get_data(data_type="secDefo", dofs="P")
+    #     y = self.brb_SMS.get_data(data_type="secForce", dofs="P")
 
-        # 应变数据
-        if pier == 1:
-            eps_ED1 = self.pier1_ED1_TS.get_data(data_type="Strain")  # 单元应变数据
-            eps_ED2 = self.pier1_ED2_TS.get_data(data_type="Strain")  # 单元应变数据
-        elif pier == 2:
-            eps_ED1 = self.pier2_ED1_TS.get_data(data_type="Strain")  # 单元应变数据
-            eps_ED2 = self.pier2_ED2_TS.get_data(data_type="Strain")  # 单元应变数据
+    #     # 绘图
+    #     plt.close("all")
+    #     fig = plt.figure(dpi=100)
+    #     ax = plt.subplot2grid((1, 1), (0, 0), rowspan=1, colspan=1, facecolor="none")
+    #     # ax.plot(self.d_ctrl, f_PT_1, label="PT_1", zorder=11)
+    #     ax.plot(x, y, label="brb", zorder=10)
+    #     ax.set_xlabel("Displacement (m)")
+    #     ax.set_ylabel("Force (kN)")
+    #     ax.autoscale()  # 自动调整坐标轴范围
+    #     # 图例
+    #     leg = ax.legend(
+    #         loc="lower right",
+    #         bbox_to_anchor=(0.97, 0.05),
+    #         labelcolor=(0, 0, 0, 1),
+    #         # frameon=True, fancybox=True, shadow=False,
+    #     )
 
-        # 绘图
-        plt.close("all")
-        fig = plt.figure(dpi=100)
-
-        # ED 1 数据
-        ax1 = plt.subplot2grid((1, 2), (0, 0), rowspan=1, colspan=1, facecolor="none")
-        ax1.plot(self.d_ctrl, eps_ED1, label="ED_1", zorder=11)
-        ax1.set_title(f"(a) Pier {pier} ED_1")
-        ax1.set_xlabel("Displacement (m)")
-        ax1.set_ylabel("Strain")
-        ax1.autoscale()  # 自动调整坐标轴范围
-        # 图例
-        leg1 = ax1.legend(
-            loc="lower right",
-            bbox_to_anchor=(0.97, 0.05),
-            labelcolor=(0, 0, 0, 1),
-            # frameon=True, fancybox=True, shadow=False,
-        )
-        # ED 2 数据
-        ax2 = plt.subplot2grid((1, 2), (0, 1), rowspan=1, colspan=1, facecolor="none")
-        ax2.plot(self.d_ctrl, eps_ED2, label="ED_2", zorder=11)
-        ax2.set_title(f"(b) Pier {pier} ED_2")
-        ax2.set_xlabel("Displacement (m)")
-        ax2.set_ylabel("Strain")
-        ax2.autoscale()  # 自动调整坐标轴范围
-        # 图例
-        leg2 = ax2.legend(
-            loc="lower right",
-            bbox_to_anchor=(0.97, 0.05),
-            labelcolor=(0, 0, 0, 1),
-            # frameon=True, fancybox=True, shadow=False,
-        )
-
-        # 调整尺寸
-        adj_fig = PlotyHub.adjust_dual(fig, ax1, ax2, leg1, leg2)
-        # 保存图片
-        adj_fig.savefig(self.data_path / f"figure_pier_{pier}_ED_resp.png", dpi=320)
-
-    def plot_PT_resp(self) -> None:
-        """
-        绘制预应力响应图。
-
-        Returns:
-            None: 不返回任何值。
-        """
-
-        # 力数据
-        f_PT_1 = self.PT1_TS.get_data(data_type="axialForce")  # 单元力数据
-        f_PT_2 = self.PT2_TS.get_data(data_type="axialForce")  # 单元力数据
-
-        # 绘图
-        plt.close("all")
-        fig = plt.figure(dpi=100)
-        ax = plt.subplot2grid((1, 1), (0, 0), rowspan=1, colspan=1, facecolor="none")
-        ax.plot(self.d_ctrl, f_PT_1, label="PT_1", zorder=11)
-        ax.plot(self.d_ctrl, f_PT_2, label="PT_2", zorder=10)
-        ax.set_xlabel("Displacement (m)")
-        ax.set_ylabel("Force (kN)")
-        ax.autoscale()  # 自动调整坐标轴范围
-        # 图例
-        leg = ax.legend(
-            loc="lower right",
-            bbox_to_anchor=(0.97, 0.05),
-            labelcolor=(0, 0, 0, 1),
-            # frameon=True, fancybox=True, shadow=False,
-        )
-
-        # 调整尺寸
-        adj_fig = PlotyHub.adjust_single(fig, ax, leg)
-        # 保存图片
-        adj_fig.savefig(self.data_path / f"figure_PT_resp.png", dpi=320)
+    #     # 调整尺寸
+    #     adj_fig = PlotyHub.adjust_single(fig, ax, leg)
+    #     # 保存图片
+    #     adj_fig.savefig(self.data_path / f"figure_BRB_resp.png", dpi=320)
 
     def _sec_resp(
         self, pier: Literal[1, 2], SEC: opst.pre.section.FiberSecMesh, step: int
@@ -526,14 +472,14 @@ class PostProcess:
             Figure: 截面响应图。
         """
         if pier == 1:
-            SMS = self.surf_1_SMS
+            pier_top, pier_base = self.pier_1_top_SMS, self.pier_1_base_SMS
         elif pier == 2:
-            SMS = self.surf_2_SMS
+            pier_top, pier_base = self.pier_2_top_SMS, self.pier_2_base_SMS
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 获取阈值
         strain_thresholds = self.MM.get_param(
-            category="section", label="contact_surf", key="stress_thresholds"
+            category="section", label="pier_col", key="strain_thresholds"
         )  # 应材料变阈值
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
@@ -541,28 +487,51 @@ class PostProcess:
         # 画布
         fig = plt.figure(dpi=100)
         fig.suptitle(
-            f"pier {pier} - contact_surf response - step {step}",
-            fontsize=22,
+            f"pier {pier} - pier_col response - step {step}",
+            fontsize=38,
             color="black",
             x=0.5,
             y=0.98,
             alpha=1.0,
         )
         # 坐标轴
-        ax = plt.subplot2grid((1, 1), (0, 0), rowspan=1, colspan=1, facecolor="none")
+        ax_top = plt.subplot2grid(
+            (1, 2), (0, 0), rowspan=1, colspan=1, facecolor="none"
+        )
+        ax_top.set_title("(a) Top")
+        ax_base = plt.subplot2grid(
+            (1, 2), (0, 1), rowspan=1, colspan=1, facecolor="none"
+        )
+        ax_base.set_title("(b) Base")
 
         # 绘制截面
-        ax_sec, cbar_sec = SMS.plot_sec(
+        ax_sec_top, cbar_sec_top = pier_top.plot_sec(
             SEC=SEC,
-            data_type="Stresses",
+            data_type="Strains",
             step=step,
             thresholds=strain_thresholds,
-            ax=ax,
+            ax=ax_top,
             fontsize=20,
         )
+        ax_sec_base, cbar_sec_base = pier_base.plot_sec(
+            SEC=SEC,
+            data_type="Strains",
+            step=step,
+            thresholds=strain_thresholds,
+            ax=ax_base,
+            fontsize=20,
+        )
+
         # 调整尺寸
-        adj_fig = PlotyHub.adjust_single(fig=fig, ax=ax_sec, cbar=cbar_sec)
-        plt.tight_layout()  # 自动调整子图参数，防止标签重叠 / 每次参数不固定
+        adj_fig = PlotyHub.adjust_dual(
+            fig=fig,
+            ax1=ax_sec_top,
+            ax2=ax_sec_base,
+            cbar1=cbar_sec_top,
+            cbar2=cbar_sec_base,
+        )
+        
+        # plt.tight_layout()  # 自动调整子图参数，防止标签重叠 / 每次参数不固定
 
         return adj_fig
 
@@ -585,7 +554,7 @@ class PostProcess:
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 保存画布
-        fig.savefig(self.data_path / f"pier{pier}_resp.png", dpi=320)
+        fig.savefig(self.data_path / f"pier{pier}_resp_step{step}.png", dpi=320)
 
     def plot_sec_resp_ani(
         self,

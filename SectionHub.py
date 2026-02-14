@@ -82,13 +82,6 @@ class SectionHub:
         bar_dia = 12 * UNIT.mm  # 钢筋直径
         bar_n = 30  # 纵筋个数
 
-        # 材料控制
-        fc = 32.8 * UNIT .mpa # 混凝土抗压强度 /32.8
-        Ec = 29.3 * UNIT.gpa # 混凝土弹性模量 /29.3
-
-        fy = 526.2 * UNIT.mpa # 钢筋屈服强度
-        Es = 190 * UNIT.gpa # 钢筋弹性模量
-
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 轮廓线
         sec_outlines = [[0, 0], [W, 0], [W, H], [0, H]]
@@ -139,7 +132,7 @@ class SectionHub:
             coverThick=cover,
             fco=fc,
             fyh=487.8 * UNIT.mpa,  # 箍筋屈服强度(MPa)
-            roucc=sec_props["rho_rebar"],
+            roucc=0.0108423891912322,
             roux=(2 * As * (W - 2 * (cover + bar_dia)))
             / Acor,  # x方向的体积配箍率, 计算时只计入约束混凝土面积
             rouy=(6 * As * (H - 2 * (cover + bar_dia)))
@@ -294,7 +287,7 @@ class SectionHub:
             fco=fc,
             d=R * 2.0,  # 截面直径
             coverThick=cover,  # 保护层厚度
-            roucc=sec_props["rho_rebar"],  # 纵筋配筋率, 计算时只计入约束混凝土面积
+            roucc=0.00684996915769603,  # 纵筋配筋率, 计算时只计入约束混凝土面积
             s=85 * UNIT.mm,  # 箍筋纵向间距（螺距）
             ds=6 * UNIT.mm,  # 箍筋直径
             fyh=487.8 * UNIT.mpa,  # 箍筋屈服强度(MPa)
@@ -344,6 +337,108 @@ class SectionHub:
         )  # 核心
         manager.set_params(
             category="uniaxialMaterial", tag=rebar_tag, params=rebar_params
+        )  # 钢筋
+        manager.set_params(category="section", tag=sec_tag, params=sec_props)  # 截面
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 可视化 截面
+        if save_sec:
+            plt.close("all")
+            SEC.view(fill=True, show_legend=True)
+            plt.savefig(f"{save_sec}/{sec_name}_mash.png", dpi=300, bbox_inches="tight")
+            plt.close("all")
+
+        return SEC
+
+    @staticmethod
+    def brb(
+        manager: opsu.pre.ModelManager,
+        info: bool = True,
+        save_sec: Union[Path, str, Literal[""]] = "",
+    ):
+        """
+        钢筋混凝土双柱式桥墩 `BRB` 截面。
+
+        Args:
+            manager (opsu.pre.ModelManager): 模型管理器对象。
+            info (bool, optional): 是否显示截面信息。默认值为 True。
+            save_sec (Union[Path, str, Literal['']], optional): 是否保存截面网格模型。默认值为 ''。
+
+        Returns:
+            opst.pre.section.FiberSecMesh: 包含截面网格模型的对象。
+        """
+
+        # 获取函数名
+        if sys._getframe() is not None:
+            sec_name = sys._getframe().f_code.co_name
+        else:
+            raise RuntimeError("Get Section name Error")
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 定义材料编号
+        brb_tag = manager.next_tag(
+            category="uniaxialMaterial", label=sec_name
+        )  # 标签标记为绘图所需
+        # 定义截面编号
+        sec_tag = manager.next_tag(category="section", label=sec_name)  # 定义截面编号
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面控制
+        W = 10. * UNIT.mm
+        H = 91.67 * UNIT.mm
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 轮廓线
+        sec_outlines = [[0, 0], [W, 0], [W, H], [0, H]]
+
+        # 生成几何形状
+        brb_geo = opst.pre.section.create_polygon_patch(outline=sec_outlines)
+
+        # 截面网格
+        SEC = opst.pre.section.FiberSecMesh(sec_name="RC Pier BRB Section")
+        SEC.add_patch_group({"BRB": brb_geo})
+        SEC.set_ops_mat_tag({"BRB": brb_tag})  # 明确材料编号
+
+        # 生成网格
+        SEC.mesh()
+        SEC.centring()
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 获取截面信息
+        sec_props = SEC.get_sec_props(display_results=info)  # 截面信息
+
+        # 钢筋
+        fy, Es = 309.6 * UNIT.mpa, 176.7 * UNIT.gpa
+        # ops 材料参数
+        brb_params = dict(fy=fy, Es=Es, b=0.01, R0=18, cR1=0.925, cR2=0.15)
+
+        # 截面轴压力
+        sec_props["P"] = 0.1 * (sec_props["A"] * abs(fy))
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 定义材料
+        ops.uniaxialMaterial("Steel02 ", brb_tag, *brb_params.values())
+
+        # 定义截面
+        SEC.to_opspy_cmds(
+            secTag=sec_tag, GJ=sec_props["J"] * ConcHub.get_G("C25") * UNIT.mpa
+        )
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
+        sec_props["strain_stages"] = {
+            brb_tag: (fy / Es, 0.015, 0.055, 0.1),
+        }
+        # 截面 应变阈值 用于：opst.pre.section.FiberSecMesh.plot_response(thresholds=)
+        sec_props["strain_thresholds"] = {
+            brb_tag: (-0.1, 0.1),  # 只能两个值
+        }
+        # 截面几何参数
+        sec_props["Width"] = W
+        sec_props["Height"] = H
+        # 储存至管理器
+        manager.set_params(
+            category="uniaxialMaterial", tag=brb_tag, params=brb_params
         )  # 钢筋
         manager.set_params(category="section", tag=sec_tag, params=sec_props)  # 截面
 
