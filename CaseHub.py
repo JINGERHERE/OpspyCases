@@ -11,10 +11,6 @@
 # ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
 """
 
-
-import os
-import time
-
 import numpy as np
 import pandas as pd
 import opstool as opst
@@ -22,9 +18,6 @@ import openseespy.opensees as ops
 import matplotlib.pyplot as plt
 import rich
 from pathlib import Path
-
-import opstool.vis.plotly as opsplt
-import opstool.vis.pyvista as opsvis
 
 import ops_utilities as opsu
 from ModelHub import RockPierModel

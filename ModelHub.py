@@ -390,43 +390,47 @@ class RockPierModel:
             fit_mat = aid_mat["fix"]
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 单元坐标转换
+        transf_beam = ATf.ndm3(bent_cap_node["start"], bent_cap_node["end"])
+        transf_pier_1 = ATf.ndm3(
+            pier_1_node["top"]["start"], pier_1_node["base"]["end"]
+        )
+        transf_pier_2 = ATf.ndm3(
+            pier_2_node["top"]["start"], pier_2_node["base"]["end"]
+        )
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 盖梁单元
         bent_cap_ele = {
             "e1": OPSE.element(
                 "dispBeamColumn",
                 *(bent_cap_node["start"], bent_cap_node["pier1"]),
-                ATf.ndm3(bent_cap_node["start"], bent_cap_node["pier1"]),
-                integ["bent_cap"],
+                *(transf_beam, integ["bent_cap"]),
             ),
             "e2": OPSE.element(
                 "dispBeamColumn",
                 *(bent_cap_node["pier1"], bent_cap_node["n1"]),
-                ATf.ndm3(bent_cap_node["pier1"], bent_cap_node["n1"]),
-                integ["bent_cap"],
+                *(transf_beam, integ["bent_cap"]),
             ),
             "e2": OPSE.element(
                 "dispBeamColumn",
                 *(bent_cap_node["n1"], bent_cap_node["center"]),
-                ATf.ndm3(bent_cap_node["n1"], bent_cap_node["center"]),
-                integ["bent_cap"],
+                *(transf_beam, integ["bent_cap"]),
             ),
             "e3": OPSE.element(
                 "dispBeamColumn",
                 *(bent_cap_node["center"], bent_cap_node["n2"]),
-                ATf.ndm3(bent_cap_node["center"], bent_cap_node["n2"]),
-                integ["bent_cap"],
+                *(transf_beam, integ["bent_cap"]),
             ),
             "e4": OPSE.element(
                 "dispBeamColumn",
                 *(bent_cap_node["n2"], bent_cap_node["pier2"]),
-                ATf.ndm3(bent_cap_node["n2"], bent_cap_node["pier2"]),
-                integ["bent_cap"],
+                *(transf_beam, integ["bent_cap"]),
             ),
             "e5": OPSE.element(
                 "dispBeamColumn",
                 *(bent_cap_node["pier2"], bent_cap_node["end"]),
-                ATf.ndm3(bent_cap_node["pier2"], bent_cap_node["end"]),
-                integ["bent_cap"],
+                *(transf_beam, integ["bent_cap"]),
             ),
         }
 
@@ -437,64 +441,54 @@ class RockPierModel:
                 "e1": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["top"]["start"], pier_1_node["top"]["brb"]),
-                    ATf.ndm3(pier_1_node["top"]["start"], pier_1_node["top"]["brb"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e2": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["top"]["brb"], pier_1_node["top"]["n1"]),
-                    ATf.ndm3(pier_1_node["top"]["brb"], pier_1_node["top"]["n1"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e3": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["top"]["n1"], pier_1_node["top"]["n2"]),
-                    ATf.ndm3(pier_1_node["top"]["n1"], pier_1_node["top"]["n2"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e4": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["top"]["n2"], pier_1_node["top"]["n3"]),
-                    ATf.ndm3(pier_1_node["top"]["n2"], pier_1_node["top"]["n3"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e5": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["top"]["n3"], pier_1_node["top"]["end"]),
-                    ATf.ndm3(pier_1_node["top"]["n3"], pier_1_node["top"]["end"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
             },
             "base": {
                 "e1": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["base"]["start"], pier_1_node["base"]["n1"]),
-                    ATf.ndm3(pier_1_node["base"]["start"], pier_1_node["base"]["n1"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e2": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["base"]["n1"], pier_1_node["base"]["n2"]),
-                    ATf.ndm3(pier_1_node["base"]["n1"], pier_1_node["base"]["n2"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e3": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["base"]["n2"], pier_1_node["base"]["n3"]),
-                    ATf.ndm3(pier_1_node["base"]["n2"], pier_1_node["base"]["n3"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e4": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["base"]["n3"], pier_1_node["base"]["brb"]),
-                    ATf.ndm3(pier_1_node["base"]["n3"], pier_1_node["base"]["brb"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e5": OPSE.element(
                     "dispBeamColumn",
                     *(pier_1_node["base"]["brb"], pier_1_node["base"]["end"]),
-                    ATf.ndm3(pier_1_node["base"]["brb"], pier_1_node["base"]["end"]),
-                    integ["pier_col"],
+                    *(transf_pier_1, integ["pier_col"]),
                 ),
             },
         }
@@ -504,64 +498,54 @@ class RockPierModel:
                 "e1": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["top"]["start"], pier_2_node["top"]["n1"]),
-                    ATf.ndm3(pier_2_node["top"]["start"], pier_2_node["top"]["n1"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e2": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["top"]["n1"], pier_2_node["top"]["n2"]),
-                    ATf.ndm3(pier_2_node["top"]["n1"], pier_2_node["top"]["n2"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e3": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["top"]["n2"], pier_2_node["top"]["n3"]),
-                    ATf.ndm3(pier_2_node["top"]["n2"], pier_2_node["top"]["n3"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e4": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["top"]["n3"], pier_2_node["top"]["brb"]),
-                    ATf.ndm3(pier_2_node["top"]["n3"], pier_2_node["top"]["brb"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e5": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["top"]["brb"], pier_2_node["top"]["end"]),
-                    ATf.ndm3(pier_2_node["top"]["brb"], pier_2_node["top"]["end"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
             },
             "base": {
                 "e1": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["base"]["start"], pier_2_node["base"]["brb"]),
-                    ATf.ndm3(pier_2_node["base"]["start"], pier_2_node["base"]["brb"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e2": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["base"]["brb"], pier_2_node["base"]["n1"]),
-                    ATf.ndm3(pier_2_node["base"]["brb"], pier_2_node["base"]["n1"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e3": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["base"]["n1"], pier_2_node["base"]["n2"]),
-                    ATf.ndm3(pier_2_node["base"]["n1"], pier_2_node["base"]["n2"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e4": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["base"]["n2"], pier_2_node["base"]["n3"]),
-                    ATf.ndm3(pier_2_node["base"]["n2"], pier_2_node["base"]["n3"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e5": OPSE.element(
                     "dispBeamColumn",
                     *(pier_2_node["base"]["n3"], pier_2_node["base"]["end"]),
-                    ATf.ndm3(pier_2_node["base"]["n3"], pier_2_node["base"]["end"]),
-                    integ["pier_col"],
+                    *(transf_pier_2, integ["pier_col"]),
                 ),
             },
         }
