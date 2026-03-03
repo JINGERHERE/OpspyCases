@@ -50,10 +50,16 @@ test_data["m"] = pd.to_numeric(test_data["m"], errors="coerce")
 test_data["kN"] = pd.to_numeric(test_data["kN"], errors="coerce")
 
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+
+
 class CaseHub:
 
     def __init__(
-        self, manager: opsu.pre.ModelManager, data_path: Path, fit: float = 0
+        self,
+        manager: opsu.pre.ModelManager,
+        data_path: Path,
+        BRB: bool = False,
+        fit: float = 0,
     ) -> None:
         """
         模型工况实例
@@ -61,6 +67,7 @@ class CaseHub:
         Args:
             manager (opsu.pre.ModelManager): 模型管理器
             data_path (Path): 数据路径
+            BRB (bool, optional): 是否包含 BRB. Defaults to False.
             fit (float, optional): 模型拟合参数. Defaults to 0.
 
         Returns:
@@ -68,7 +75,11 @@ class CaseHub:
         """
 
         # 创建数据路径
-        self.case_name = f"model_fit_{fit:.2e}" if fit else "model"
+        self.brb = BRB
+        if BRB:
+            self.case_name = f"model_BRB_fit_{fit:.2e}" if fit else "model_BRB"
+        else:
+            self.case_name = f"model_fit_{fit:.2e}" if fit else "model"
         self.data_path = data_path / self.case_name
         self.data_path.mkdir(parents=True, exist_ok=True)
 
@@ -77,23 +88,19 @@ class CaseHub:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 实例化模型
         self.model = RockPierModel(self.MM, self.data_path)
-        self.model.model(info=False)
-        # if BRB:
-        #     self.model.BRB(info=False)
+        self.model.model(info=False, fit=fit)
+        if BRB:
+            self.model.BRB(info=False)
 
         # 输出模型
         self.MM.to_excel(self.data_path / "ModelManager.xlsx")
         # 输出模型
         ops.printModel("-JSON", "-file", str(self.data_path / "thisModel.json"))
         # 可视化模型
-        fig = opst.vis.plotly.plot_model(show_local_axes=True)
+        fig = opst.vis.plotly.plot_model(show_local_axes=False)
         fig.write_html(self.data_path / "thisModel.html")
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
-        # 实例化模型
-        self.model = RockPierModel(self.MM, self.data_path)
-        self.model.model(fit=fit, info=False)
-
         # 时间序列
         self.ts = OPSE.timeSeries("Linear")
 
@@ -103,9 +110,10 @@ class CaseHub:
         # 创建数据库
         self.ODB = opst.post.CreateODB(
             odb_tag=self.case_name,
+            model_update = True,
             elastic_frame_sec_points=9,
             fiber_ele_tags="ALL",
-            zlib=True
+            zlib=True,
         )
 
     def gravity(self, save_odb: bool = True) -> None:
@@ -147,7 +155,7 @@ class CaseHub:
             incr (float): 每一步增量
 
         Returns:
-            Tuple[np.ndarray, np.ndarray]: 位移路径, 力路径
+            Tuple(np.ndarray, np.ndarray): 位移路径, 力路径
                 - disp: 位移路径
                 - force: 力路径 (控制力 * 荷载乘子)
         """
@@ -197,6 +205,38 @@ class CaseHub:
 
         return disp, force
 
+    # def cycle(self):
+    #     """
+    #     Cycle 分析方法
+
+    #     Returns:
+    #         Tuple[np.ndarray, np.ndarray]: 位移路径, 力路径
+    #             - disp: 位移路径
+    #             - force: 力路径
+    #     """
+
+    #     # 重力分析
+    #     self.gravity(save_odb=False)
+
+    #     # 位移路径
+    #     incr = 0.002 * UNIT.m
+    #     # 全程
+    #     disp_1 = np.arange(0.003, 0.015 + 0.003, 0.003)  # 第一阶段 控制位移幅值
+    #     disp_2 = np.arange(0.016, 0.12 + 0.0075, 0.0075)  # 第二节段 控制唯一幅值
+    #     disp_step = np.repeat(np.concatenate((disp_1, disp_2)), 3)  # 合并后 重复三次
+    #     disp_pairs = np.stack((disp_step, -disp_step), axis=1).flatten()  # 正负成对
+    #     disp_path = np.concatenate(([0.0], disp_pairs, [0.0])) * UNIT.m  # 添加首尾
+    #     # 最大圈
+    #     # disp_path = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
+
+    #     # 静力分析
+    #     disp, force = self._static(targets=disp_path, incr=incr)
+
+    #     # 保存数据库
+    #     self.ODB.save_response()
+
+    #     return disp, force
+
     def cycle(self):
         """
         Cycle 分析方法
@@ -212,17 +252,43 @@ class CaseHub:
 
         # 位移路径
         incr = 0.002 * UNIT.m
-        # 全程
-        disp_1 = np.arange(0.003, 0.015 + 0.003, 0.003)  # 第一阶段 控制位移幅值
-        disp_2 = np.arange(0.016, 0.12 + 0.0075, 0.0075)  # 第二节段 控制唯一幅值
-        disp_step = np.repeat(np.concatenate((disp_1, disp_2)), 3)  # 合并后 重复三次
-        disp_pairs = np.stack((disp_step, -disp_step), axis=1).flatten()  # 正负成对
-        disp_path = np.concatenate(([0.0], disp_pairs, [0.0])) * UNIT.m  # 添加首尾
-        # 最大圈
-        # disp_path = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
 
-        # 静力分析
-        disp, force = self._static(targets=disp_path, incr=incr)
+        if self.brb:
+            # 第一段
+            disp_path_1 = np.array([0.0, 0.0375, -0.0375, 0.0]) * UNIT.m
+            disp_1, force_1 = self._static(targets=disp_path_1, incr=incr)
+
+            # 第二段
+            # ops.remove("ele", 53)
+            ops.remove("ele", self.MM.get_tag("element", label="brb_top")[0])  # 53
+            # ops.remove("ele", self.MM.get_tag("element", label="brb_base")[0])  # 56
+            disp_path_2 = np.array([0.0, 0.045, -0.045, 0.0825, -0.0825, 0.0]) * UNIT.m
+            disp_2, force_2 = self._static(targets=disp_path_2, incr=incr)
+
+            # 第三段
+            # ops.remove("ele", 56)
+            # ops.remove("ele", self.MM.get_tag("element", label="brb_top")[0])  # 53
+            # ops.remove("ele", self.MM.get_tag("element", label="brb_base")[0])  # 56
+            disp_path_3 = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
+            disp_3, force_3 = self._static(targets=disp_path_3, incr=incr)
+
+            # 合并数据
+            disp = np.concatenate((disp_1, disp_2, disp_3))
+            force = np.concatenate((force_1, force_2, force_3))
+
+        else:
+            # 全程
+            disp_1 = np.arange(0.003, 0.015 + 0.003, 0.003)  # 第一阶段 控制位移幅值
+            disp_2 = np.arange(0.016, 0.12 + 0.0075, 0.0075)  # 第二节段 控制唯一幅值
+            disp_step = np.repeat(np.concatenate((disp_1, disp_2)), 3)  # 合并后 重复三次
+            disp_pairs = np.stack((disp_step, -disp_step), axis=1).flatten()  # 正负成对
+            disp_path = np.concatenate(([0.0], disp_pairs, [0.0])) * UNIT.m  # 添加首尾
+
+            # 最大圈
+            disp_path = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
+            
+            # 静力分析
+            disp, force = self._static(targets=disp_path, incr=incr)
 
         # 保存数据库
         self.ODB.save_response()

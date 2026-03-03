@@ -46,27 +46,32 @@ class AnalysisCase:
     data_path.mkdir(parents=True, exist_ok=True)
 
     @classmethod
-    def static(cls, cycle: bool = False, fit: float = 0):
+    def static(cls, cycle: bool = False, BRB: bool = False, fit: float = 0):
 
         # 模型实例
         if cycle:
-            CH = CaseHub(MM, cls.data_path / "cycle", fit)
+            CH = CaseHub(MM, cls.data_path / "cycle", BRB, fit)
             disp, force = CH.cycle()  # 分析
         else:
-            CH = CaseHub(MM, cls.data_path / "push", fit)
+            CH = CaseHub(MM, cls.data_path / "push", BRB, fit)
             disp, force = CH.push()  # 分析
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 试验原始数据
-        test_file = "SCB.xlsx"
+        if BRB:
+            # test_file = "20260209_SCBRB.xlsx"
+            test_file = "优化后SCBRB滞回曲线.xlsx"
+        else:
+            test_file = "20260129_SC.xlsx"
+        # test_file = "SCB.xlsx"
         # test_file = 'SCB_EDB.xlsx'
-        
+
         # 导入
         test_data = pd.read_excel(cls.root_path / ".RAW_DATA" / test_file)
         # 清洗数据 转换为数值
-        disp_test = pd.to_numeric(test_data["m"], errors="coerce") * UNIT.m
-        force_test = pd.to_numeric(test_data["kN"], errors="coerce") * UNIT.kn
-        
+        disp_test = pd.to_numeric(test_data["mm"], errors="coerce") * UNIT.mm
+        force_test = pd.to_numeric(test_data["N"], errors="coerce") * UNIT.n
+
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 后处理实例
         PP = PostProcess(MM, CH.case_name, CH.data_path, print_info=False)
@@ -78,9 +83,9 @@ class AnalysisCase:
         # 柱底接触面
         PP.plot_sec_resp(pier=1, SEC=CH.model.SEC_cont, step=PP.surf_sep_step - 1)
         PP.plot_sec_resp(pier=2, SEC=CH.model.SEC_cont, step=PP.surf_sep_step - 1)
-        PP.plot_sec_resp_ani(
-            pier=1, SEC=CH.model.SEC_cont, max_steps=len(disp) - 1, speed=5
-        ) # 减去一步初始状态
+        # PP.plot_sec_resp_ani(
+        #     pier=1, SEC=CH.model.SEC_cont, max_steps=len(disp) - 1, speed=5
+        # ) # 减去一步初始状态
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 绘制 Pushover 图
@@ -90,20 +95,20 @@ class AnalysisCase:
 
         # 数据 / 关键点数据要减去 10步重力分析 和 1步静力分析初始状态
         ax.plot(disp, force, label="FEM", zorder=11)
-        ax.scatter(
-            disp[PP.surf_sep_step - 11],
-            force[PP.surf_sep_step - 11],
-            c="blue",
-            label="Sepa.",
-            zorder=12,
-        )
-        ax.scatter(
-            disp[PP.ED_yield_step - 11],
-            force[PP.ED_yield_step - 11],
-            c="red",
-            label="Yield",
-            zorder=12,
-        )
+        # ax.scatter(
+        #     disp[PP.surf_sep_step - 11],
+        #     force[PP.surf_sep_step - 11],
+        #     c="blue",
+        #     label="Sepa.",
+        #     zorder=12,
+        # )
+        # ax.scatter(
+        #     disp[PP.ED_yield_step - 11],
+        #     force[PP.ED_yield_step - 11],
+        #     c="red",
+        #     label="Yield",
+        #     zorder=12,
+        # )
         ax.plot(disp_test, force_test, label="TEST", zorder=10)
         ax.set_xlabel("Displacement (m)")
         ax.set_ylabel("Force (kN)")
@@ -118,8 +123,17 @@ class AnalysisCase:
 
         # 调整尺寸
         adj_fig = PlotyHub.adjust_single(fig, ax, leg)
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 保存图片
         adj_fig.savefig(CH.data_path / f"figure_disp_force.png", dpi=320)
+        
+        # 保存数据
+        DATA = pd.DataFrame({
+            "Disp(m)": disp,
+            "Force(kN)": force,
+        })
+        DATA.to_excel(CH.data_path / f"disp_force.xlsx", index=False)
 
 
 """
@@ -131,5 +145,7 @@ class AnalysisCase:
 
 if __name__ == "__main__":
 
-    AnalysisCase.static(cycle=False, fit=1.5e3)
-    # AnalysisCase.static(cycle=True, fit=1.5e3)
+    # AnalysisCase.static(cycle=False, BRB=False, fit=1.5e3) # old
+
+    # AnalysisCase.static(cycle=True, BRB=False, fit=4.0e3)
+    AnalysisCase.static(cycle=True, BRB=True, fit=8.5e3)

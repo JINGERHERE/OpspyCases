@@ -24,25 +24,20 @@ def _():
     from typing import NamedTuple, List, Type, Union, Literal, Optional
     from collections import namedtuple
     from dataclasses import dataclass, fields, asdict
-    return (Path,)
+    return np, pd
 
 
 @app.cell
-def _(Path):
-    fit: float = 1.5e3
-    data_path = Path().cwd() / f"model_fit_{fit:.2e}"
-    data_path.mkdir(parents=True, exist_ok=True)
-    print(f'{fit: .2e}')
+def _(np, pd):
+    disp = np.array([1, 2, 3, 4, 5, 6, 7, 8])
+    force = np.array([1, 1, 1, 1, 2, 3, 4, 5])
+
+    data = pd.DataFrame({
+        "Disp": disp,
+        "Force": force
+    })
+    data
     return
-
-
-app._unparsable_cell(
-    r"""
-    ttt = ["strain", "s"]
-    if ttt isin
-    """,
-    name="_"
-)
 
 
 if __name__ == "__main__":

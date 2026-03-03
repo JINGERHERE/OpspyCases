@@ -72,6 +72,9 @@ class RockPierModel:
         self.SEC_pier: opst.pre.section.FiberSecMesh  # 墩柱
         self.SEC_cont: opst.pre.section.FiberSecMesh  # 接触面
 
+        self.SEC_BRB_core: opst.pre.section.FiberSecMesh  # BRB核心
+        self.SEC_BRB_link: opst.pre.section.FiberSecMesh  # BRB连接
+
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 保存路径
         self.data_path = Path("./")
@@ -107,7 +110,7 @@ class RockPierModel:
 
         # 耗能钢筋
         ED_fy, ED_Es, ED_area = (
-            437.3 * UNIT.mpa,
+            637.3 * UNIT.mpa,
             201 * UNIT.gpa,
             np.pi * (6 * UNIT.mm) ** 2,
         )
@@ -124,7 +127,7 @@ class RockPierModel:
         PT_f = 0.40 * PT_fy  # 张拉控制力
 
         # 模型收敛刚度拟合
-        # Kfit = 1.5e3
+        # Kfit = 4.0e3
         Ubig = 1.0e6
         Usmall = 1.0e-6
 
@@ -189,7 +192,7 @@ class RockPierModel:
         }
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 1 柱 - 节点
-        pier_1_node = {
+        self.pier_1_node = {
             # 1 柱 - 上节段 节点
             "top": {
                 # "start": OPSE.node(
@@ -234,7 +237,7 @@ class RockPierModel:
             },
         }
         # 2 柱 - 节点
-        pier_2_node = {
+        self.pier_2_node = {
             # 2 柱 - 上节段 节点
             "top": {
                 # "start": OPSE.node(
@@ -315,7 +318,7 @@ class RockPierModel:
         }
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 辅助节点
-        aid_node = {
+        self.aid_node = {
             "pier_1": {
                 "surf_top": OPSE.node(0.0, -PierW / 2, PierH),  # 1 柱顶 接触面节点
                 "surf_base": OPSE.node(0.0, -PierW / 2, 0.0),  # 1 柱底 接触面节点
@@ -348,13 +351,13 @@ class RockPierModel:
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 柱 1 节点约束
-        OPSE.fix(aid_node["pier_1"]["surf_base"], *(1, 1, 1, 1, 1, 1))
-        OPSE.fix(aid_node["pier_1"]["ED_1_lim"], *(1, 1, 1, 1, 1, 1))
-        OPSE.fix(aid_node["pier_1"]["ED_2_lim"], *(1, 1, 1, 1, 1, 1))
+        OPSE.fix(self.aid_node["pier_1"]["surf_base"], *(1, 1, 1, 1, 1, 1))
+        OPSE.fix(self.aid_node["pier_1"]["ED_1_lim"], *(1, 1, 1, 1, 1, 1))
+        OPSE.fix(self.aid_node["pier_1"]["ED_2_lim"], *(1, 1, 1, 1, 1, 1))
         # 柱 2 节点约束
-        OPSE.fix(aid_node["pier_2"]["surf_base"], *(1, 1, 1, 1, 1, 1))
-        OPSE.fix(aid_node["pier_2"]["ED_1_lim"], *(1, 1, 1, 1, 1, 1))
-        OPSE.fix(aid_node["pier_2"]["ED_2_lim"], *(1, 1, 1, 1, 1, 1))
+        OPSE.fix(self.aid_node["pier_2"]["surf_base"], *(1, 1, 1, 1, 1, 1))
+        OPSE.fix(self.aid_node["pier_2"]["ED_1_lim"], *(1, 1, 1, 1, 1, 1))
+        OPSE.fix(self.aid_node["pier_2"]["ED_2_lim"], *(1, 1, 1, 1, 1, 1))
 
         # 耗能钢筋
         OPSE.fix(ED_node["pier_1"]["ED_1_base"], *(1, 1, 1, 1, 1, 1))
@@ -385,7 +388,9 @@ class RockPierModel:
         }
         # 用于刚度拟合
         if fit:
+            # if Kfit:
             fit_mat = OPSE.uniaxialMaterial("Elastic", fit)
+            # fit_mat = OPSE.uniaxialMaterial("Elastic", Kfit)
         else:
             fit_mat = aid_mat["fix"]
 
@@ -393,10 +398,10 @@ class RockPierModel:
         # 单元坐标转换
         transf_beam = ATf.ndm3(bent_cap_node["start"], bent_cap_node["end"])
         transf_pier_1 = ATf.ndm3(
-            pier_1_node["top"]["start"], pier_1_node["base"]["end"]
+            self.pier_1_node["top"]["start"], self.pier_1_node["base"]["end"]
         )
         transf_pier_2 = ATf.ndm3(
-            pier_2_node["top"]["start"], pier_2_node["base"]["end"]
+            self.pier_2_node["top"]["start"], self.pier_2_node["base"]["end"]
         )
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
@@ -440,54 +445,57 @@ class RockPierModel:
             "top": {
                 "e1": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["top"]["start"], pier_1_node["top"]["brb"]),
+                    *(self.pier_1_node["top"]["start"], self.pier_1_node["top"]["brb"]),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e2": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["top"]["brb"], pier_1_node["top"]["n1"]),
+                    *(self.pier_1_node["top"]["brb"], self.pier_1_node["top"]["n1"]),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e3": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["top"]["n1"], pier_1_node["top"]["n2"]),
+                    *(self.pier_1_node["top"]["n1"], self.pier_1_node["top"]["n2"]),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e4": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["top"]["n2"], pier_1_node["top"]["n3"]),
+                    *(self.pier_1_node["top"]["n2"], self.pier_1_node["top"]["n3"]),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e5": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["top"]["n3"], pier_1_node["top"]["end"]),
+                    *(self.pier_1_node["top"]["n3"], self.pier_1_node["top"]["end"]),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
             },
             "base": {
                 "e1": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["base"]["start"], pier_1_node["base"]["n1"]),
+                    *(
+                        self.pier_1_node["base"]["start"],
+                        self.pier_1_node["base"]["n1"],
+                    ),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e2": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["base"]["n1"], pier_1_node["base"]["n2"]),
+                    *(self.pier_1_node["base"]["n1"], self.pier_1_node["base"]["n2"]),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e3": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["base"]["n2"], pier_1_node["base"]["n3"]),
+                    *(self.pier_1_node["base"]["n2"], self.pier_1_node["base"]["n3"]),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e4": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["base"]["n3"], pier_1_node["base"]["brb"]),
+                    *(self.pier_1_node["base"]["n3"], self.pier_1_node["base"]["brb"]),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
                 "e5": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_1_node["base"]["brb"], pier_1_node["base"]["end"]),
+                    *(self.pier_1_node["base"]["brb"], self.pier_1_node["base"]["end"]),
                     *(transf_pier_1, integ["pier_col"]),
                 ),
             },
@@ -497,54 +505,57 @@ class RockPierModel:
             "top": {
                 "e1": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["top"]["start"], pier_2_node["top"]["n1"]),
+                    *(self.pier_2_node["top"]["start"], self.pier_2_node["top"]["n1"]),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e2": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["top"]["n1"], pier_2_node["top"]["n2"]),
+                    *(self.pier_2_node["top"]["n1"], self.pier_2_node["top"]["n2"]),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e3": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["top"]["n2"], pier_2_node["top"]["n3"]),
+                    *(self.pier_2_node["top"]["n2"], self.pier_2_node["top"]["n3"]),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e4": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["top"]["n3"], pier_2_node["top"]["brb"]),
+                    *(self.pier_2_node["top"]["n3"], self.pier_2_node["top"]["brb"]),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e5": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["top"]["brb"], pier_2_node["top"]["end"]),
+                    *(self.pier_2_node["top"]["brb"], self.pier_2_node["top"]["end"]),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
             },
             "base": {
                 "e1": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["base"]["start"], pier_2_node["base"]["brb"]),
+                    *(
+                        self.pier_2_node["base"]["start"],
+                        self.pier_2_node["base"]["brb"],
+                    ),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e2": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["base"]["brb"], pier_2_node["base"]["n1"]),
+                    *(self.pier_2_node["base"]["brb"], self.pier_2_node["base"]["n1"]),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e3": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["base"]["n1"], pier_2_node["base"]["n2"]),
+                    *(self.pier_2_node["base"]["n1"], self.pier_2_node["base"]["n2"]),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e4": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["base"]["n2"], pier_2_node["base"]["n3"]),
+                    *(self.pier_2_node["base"]["n2"], self.pier_2_node["base"]["n3"]),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
                 "e5": OPSE.element(
                     "dispBeamColumn",
-                    *(pier_2_node["base"]["n3"], pier_2_node["base"]["end"]),
+                    *(self.pier_2_node["base"]["n3"], self.pier_2_node["base"]["end"]),
                     *(transf_pier_2, integ["pier_col"]),
                 ),
             },
@@ -598,14 +609,32 @@ class RockPierModel:
         # 接触面 < 零长单元 > 节点连接顺序
         link_surf = {
             "pier_1": {
-                "top": (aid_node["pier_1"]["surf_top"], pier_1_node["top"]["start"]),
-                "mid": (pier_1_node["top"]["end"], pier_1_node["base"]["start"]),
-                "base": (pier_1_node["base"]["end"], aid_node["pier_1"]["surf_base"]),
+                "top": (
+                    self.aid_node["pier_1"]["surf_top"],
+                    self.pier_1_node["top"]["start"],
+                ),
+                "mid": (
+                    self.pier_1_node["top"]["end"],
+                    self.pier_1_node["base"]["start"],
+                ),
+                "base": (
+                    self.pier_1_node["base"]["end"],
+                    self.aid_node["pier_1"]["surf_base"],
+                ),
             },
             "pier_2": {
-                "top": (aid_node["pier_2"]["surf_top"], pier_2_node["top"]["start"]),
-                "mid": (pier_2_node["top"]["end"], pier_2_node["base"]["start"]),
-                "base": (pier_2_node["base"]["end"], aid_node["pier_2"]["surf_base"]),
+                "top": (
+                    self.aid_node["pier_2"]["surf_top"],
+                    self.pier_2_node["top"]["start"],
+                ),
+                "mid": (
+                    self.pier_2_node["top"]["end"],
+                    self.pier_2_node["base"]["start"],
+                ),
+                "base": (
+                    self.pier_2_node["base"]["end"],
+                    self.aid_node["pier_2"]["surf_base"],
+                ),
             },
         }  # 作为 equalDOF 时 需要 *reversed() 将节点反序
 
@@ -633,10 +662,10 @@ class RockPierModel:
                 ),  # 盖梁 - 预应力顶
                 "beam_col": OPSE.element(
                     "elasticBeamColumn",
-                    *(bent_cap_node["pier1"], aid_node["pier_1"]["surf_top"]),
+                    *(bent_cap_node["pier1"], self.aid_node["pier_1"]["surf_top"]),
                     *(0.1, Ec, Gc),
                     *(Ubig, Ubig, Ubig),
-                    ATf.ndm3(bent_cap_node["pier1"], aid_node["pier_1"]["surf_top"]),
+                    ATf.ndm3(bent_cap_node["pier1"], self.aid_node["pier_1"]["surf_top"]),
                 ),  # 盖梁 - 柱顶
                 "pier_top": OPSE.element(
                     "zeroLengthSection",
@@ -658,27 +687,31 @@ class RockPierModel:
                 ),  # 柱底 接触面
                 "pier_base_edge_1": OPSE.element(
                     "elasticBeamColumn",
-                    *(pier_1_node["base"]["end"], ED_node["pier_1"]["ED_1_top"]),
+                    *(self.pier_1_node["base"]["end"], ED_node["pier_1"]["ED_1_top"]),
                     *(0.1, Ec, Gc),
                     *(Ubig, Ubig, Ubig),
-                    ATf.ndm3(pier_1_node["base"]["end"], ED_node["pier_1"]["ED_1_top"]),
+                    ATf.ndm3(
+                        self.pier_1_node["base"]["end"], ED_node["pier_1"]["ED_1_top"]
+                    ),
                 ),  # 柱底 边缘钢臂 1
                 "pier_base_edge_2": OPSE.element(
                     "elasticBeamColumn",
-                    *(pier_1_node["base"]["end"], ED_node["pier_1"]["ED_2_top"]),
+                    *(self.pier_1_node["base"]["end"], ED_node["pier_1"]["ED_2_top"]),
                     *(0.1, Ec, Gc),
                     *(Ubig, Ubig, Ubig),
-                    ATf.ndm3(pier_1_node["base"]["end"], ED_node["pier_1"]["ED_2_top"]),
+                    ATf.ndm3(
+                        self.pier_1_node["base"]["end"], ED_node["pier_1"]["ED_2_top"]
+                    ),
                 ),  # 柱底 边缘钢臂 2
                 "ED_1_lim": OPSE.element(
                     "zeroLength",
-                    *(ED_node["pier_1"]["ED_1_top"], aid_node["pier_1"]["ED_1_lim"]),
+                    *(ED_node["pier_1"]["ED_1_top"], self.aid_node["pier_1"]["ED_1_lim"]),
                     *("-mat", *dir_mats, "-dir", *dirs),
                     *("-orient", *vecx, *vecyp),
                 ),  # 耗能钢筋 1 压缩限位
                 "ED_2_lim": OPSE.element(
                     "zeroLength",
-                    *(ED_node["pier_1"]["ED_2_top"], aid_node["pier_1"]["ED_2_lim"]),
+                    *(ED_node["pier_1"]["ED_2_top"], self.aid_node["pier_1"]["ED_2_lim"]),
                     *("-mat", *dir_mats, "-dir", *dirs),
                     *("-orient", *vecx, *vecyp),
                 ),  # 耗能钢筋 2 压缩限位
@@ -693,10 +726,10 @@ class RockPierModel:
                 ),  # 盖梁 - 预应力顶
                 "beam_col": OPSE.element(
                     "elasticBeamColumn",
-                    *(bent_cap_node["pier2"], aid_node["pier_2"]["surf_top"]),
+                    *(bent_cap_node["pier2"], self.aid_node["pier_2"]["surf_top"]),
                     *(0.1, Ec, Gc),
                     *(Ubig, Ubig, Ubig),
-                    ATf.ndm3(bent_cap_node["pier1"], aid_node["pier_1"]["surf_top"]),
+                    ATf.ndm3(bent_cap_node["pier1"], self.aid_node["pier_1"]["surf_top"]),
                 ),  # 盖梁 - 柱顶
                 "pier_top": OPSE.element(
                     "zeroLengthSection",
@@ -718,27 +751,31 @@ class RockPierModel:
                 ),  # 柱底 接触面
                 "pier_base_edge_1": OPSE.element(
                     "elasticBeamColumn",
-                    *(pier_2_node["base"]["end"], ED_node["pier_2"]["ED_1_top"]),
+                    *(self.pier_2_node["base"]["end"], ED_node["pier_2"]["ED_1_top"]),
                     *(0.1, Ec, Gc),
                     *(Ubig, Ubig, Ubig),
-                    ATf.ndm3(pier_2_node["base"]["end"], ED_node["pier_2"]["ED_1_top"]),
+                    ATf.ndm3(
+                        self.pier_2_node["base"]["end"], ED_node["pier_2"]["ED_1_top"]
+                    ),
                 ),  # 柱底 边缘钢臂 1
                 "pier_base_edge_2": OPSE.element(
                     "elasticBeamColumn",
-                    *(pier_2_node["base"]["end"], ED_node["pier_2"]["ED_2_top"]),
+                    *(self.pier_2_node["base"]["end"], ED_node["pier_2"]["ED_2_top"]),
                     *(0.1, Ec, Gc),
                     *(Ubig, Ubig, Ubig),
-                    ATf.ndm3(pier_2_node["base"]["end"], ED_node["pier_2"]["ED_2_top"]),
+                    ATf.ndm3(
+                        self.pier_2_node["base"]["end"], ED_node["pier_2"]["ED_2_top"]
+                    ),
                 ),  # 柱底 边缘钢臂 2
                 "ED_1_lim": OPSE.element(
                     "zeroLength",
-                    *(ED_node["pier_2"]["ED_1_top"], aid_node["pier_2"]["ED_1_lim"]),
+                    *(ED_node["pier_2"]["ED_1_top"], self.aid_node["pier_2"]["ED_1_lim"]),
                     *("-mat", *dir_mats, "-dir", *dirs),
                     *("-orient", *vecx, *vecyp),
                 ),  # 耗能钢筋 1 压缩限位
                 "ED_2_lim": OPSE.element(
                     "zeroLength",
-                    *(ED_node["pier_2"]["ED_2_top"], aid_node["pier_2"]["ED_2_lim"]),
+                    *(ED_node["pier_2"]["ED_2_top"], self.aid_node["pier_2"]["ED_2_lim"]),
                     *("-mat", *dir_mats, "-dir", *dirs),
                     *("-orient", *vecx, *vecyp),
                 ),  # 耗能钢筋 2 压缩限位
@@ -750,20 +787,20 @@ class RockPierModel:
         brb_dof_equal = (1, 2, 3, 4, 5, 6)  # BRB 全自由度约束
         # 柱 1 BRB 自由度等效
         OPSE.equalDOF(
-            *(pier_1_node["top"]["brb"], aid_node["pier_1"]["edge_top"]),
+            *(self.pier_1_node["top"]["brb"], self.aid_node["pier_1"]["edge_top"]),
             *brb_dof_equal,
         )
         OPSE.equalDOF(
-            *(pier_1_node["base"]["brb"], aid_node["pier_1"]["edge_base"]),
+            *(self.pier_1_node["base"]["brb"], self.aid_node["pier_1"]["edge_base"]),
             *brb_dof_equal,
         )
         # 柱 2 BRB 自由度等效
         OPSE.equalDOF(
-            *(pier_2_node["top"]["brb"], aid_node["pier_2"]["edge_top"]),
+            *(self.pier_2_node["top"]["brb"], self.aid_node["pier_2"]["edge_top"]),
             *brb_dof_equal,
         )
         OPSE.equalDOF(
-            *(pier_2_node["base"]["brb"], aid_node["pier_2"]["edge_base"]),
+            *(self.pier_2_node["base"]["brb"], self.aid_node["pier_2"]["edge_base"]),
             *brb_dof_equal,
         )
 
@@ -778,6 +815,7 @@ class RockPierModel:
         OPSE.equalDOF(*reversed(link_surf["pier_2"]["mid"]), *surf_dof_equal)
         # 柱底滑移控制
         if not fit:
+            # if not Kfit:
             OPSE.equalDOF(*reversed(link_surf["pier_1"]["base"]), *surf_dof_equal)
             OPSE.equalDOF(*reversed(link_surf["pier_2"]["base"]), *surf_dof_equal)
         # 自由度继承以底部节点为主 ----- ----- -----
@@ -828,10 +866,10 @@ class RockPierModel:
         # 节点收集
         nodes_beam = list(bent_cap_node.values())
         nodes_pier = (
-            list(pier_1_node["top"].values())
-            + list(pier_1_node["base"].values())
-            + list(pier_2_node["top"].values())
-            + list(pier_2_node["base"].values())
+            list(self.pier_1_node["top"].values())
+            + list(self.pier_1_node["base"].values())
+            + list(self.pier_2_node["top"].values())
+            + list(self.pier_2_node["base"].values())
         )
 
         # 计算节点质量
@@ -840,7 +878,8 @@ class RockPierModel:
         )  # 盖梁质量
         mass_pier = (
             (2 * PierH)
-            * self.MM.get_param("section", "pier_col", "A") * rho 
+            * self.MM.get_param("section", "pier_col", "A")
+            * rho
             / len(nodes_pier)
         )  # 墩柱质量
 
@@ -851,6 +890,129 @@ class RockPierModel:
         for i in nodes_pier:
             OPSE.mass(i, *(mass_pier, mass_pier, mass_pier), *(0.0, 0.0, 0.0))
 
+    def BRB(self, info: bool = False) -> None:
+        """
+        配置 BRB 模型
+        """
+
+        # 创建截面
+        self.SEC_BRB_core = SectionHub.brb_core(
+            manager=self.MM, info=info, save_sec=self.data_path
+        )
+        self.SEC_BRB_link = SectionHub.brb_link(
+            manager=self.MM, info=info, save_sec=self.data_path
+        )
+
+        # 刷新 将缓存同步至管理器
+        OPSE.refresh()
+        # 截面编号
+        sec_tag_brb_core = self.MM.get_tag("section", label="brb_core")[0]
+        sec_tag_brb_link = self.MM.get_tag("section", label="brb_link")[0]
+
+        # 截面单元积分
+        brb_core_integ = OPSE.beamIntegration("Legendre", sec_tag_brb_core, 5)
+        brb_link_integ = OPSE.beamIntegration("Legendre", sec_tag_brb_link, 5)
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        def _creator(node_i: int, node_j: int) -> int:
+
+            # 检查输入
+            # print(f'创建 BRB 模型：{node_i} -> {node_j}')
+
+            # 获取两端连接节点坐标
+            node_i_coord = np.array(ops.nodeCoord(node_i))  # 不存在会报错
+            node_j_coord = np.array(ops.nodeCoord(node_j))
+
+            # 计算距离
+            L = np.linalg.norm(node_j_coord - node_i_coord)  # 固定端总长度
+
+            # 计算直线参数
+            center_point = (node_i_coord + node_j_coord) / 2  # 直线中心坐标
+            dir_vector = (node_j_coord - node_i_coord) / L  # 直线方向向量
+
+            "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+            # 单元坐标转换
+            transf_brb = ATf.ndm3(node_i, node_j)
+
+            "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+            # BRB 核心段 长度
+            core_len = 360 * UNIT.mm
+
+            # 缩放后的端点坐标
+            core_i_coord = center_point - (dir_vector * core_len / 2)
+            core_j_coord = center_point + (dir_vector * core_len / 2)
+
+            # 节点
+            core_i_tag = OPSE.node(*core_i_coord)  # 核心 I 端
+            core_j_tag = OPSE.node(*core_j_coord)  # 核心 J 端
+
+            # 连接段单元
+            # link_i_tag = OPSE.element(
+            #     "dispBeamColumn",
+            #     *(node_i, core_i_tag),
+            #     *(transf_brb, brb_link_integ),
+            # )
+            # link_j_tag = OPSE.element(
+            #     "dispBeamColumn",
+            #     *(core_j_tag, node_j),
+            #     *(transf_brb, brb_link_integ),
+            # )
+
+            Ubig = 1.e6
+            # link_i_tag = OPSE.element(
+            #     "elasticBeamColumn",
+            #     *(node_i, core_i_tag),
+            #     *(1.536e-3, 200 * UNIT.gpa, 100 * UNIT.gpa),
+            #     *(Ubig, Ubig, Ubig),
+            #     transf_brb,
+            # )
+            # link_j_tag = OPSE.element(
+            #     "elasticBeamColumn",
+            #     *(core_j_tag, node_j),
+            #     *(1.536e-3, 200 * UNIT.gpa, 100 * UNIT.gpa),
+            #     *(Ubig, Ubig, Ubig),
+            #     transf_brb,
+            # )
+
+            link_i_tag = OPSE.element(
+                "elasticBeamColumn",
+                *(node_i, core_i_tag),
+                *(sec_tag_brb_link, transf_brb)
+            )
+            link_j_tag = OPSE.element(
+                "elasticBeamColumn",
+                *(core_j_tag, node_j),
+                *(sec_tag_brb_link, transf_brb)
+            )
+
+            # 核心单元
+            core_tag = OPSE.element(
+                "dispBeamColumn",
+                *(core_i_tag, core_j_tag),
+                *(transf_brb, brb_link_integ),
+            )
+            
+            return core_tag
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 节点定位
+        core_tag_top = _creator(
+            node_i=self.aid_node["pier_1"]["edge_top"],
+            node_j=self.aid_node["pier_2"]["edge_top"],
+        )
+        # print(f'顶部: {core_tag_top}')
+        core_tag_base = _creator(
+            node_i=self.aid_node["pier_1"]["edge_base"],
+            node_j=self.aid_node["pier_2"]["edge_base"],
+        )
+        # print(f'底部: {core_tag_base}')
+        
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 刷新 将缓存同步至管理器
+        OPSE.refresh()
+        # 核心单元
+        self.MM.tag_config("element", tag=core_tag_top, label="brb_top")
+        self.MM.tag_config("element", tag=core_tag_base, label="brb_base")
 
 """
 # --------------------------------------------------

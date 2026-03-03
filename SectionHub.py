@@ -447,12 +447,12 @@ class SectionHub:
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
         sec_props["stress_stages"] = {
-            mat_tag: (0.),
+            mat_tag: (0.0),
             # core_tag: (-fy / Es, -ecu, 0.75 * -eccu, -eccu),
         }
         # 截面 应变阈值 用于：opst.pre.section.FiberSecMesh.plot_response(thresholds=)
         sec_props["stress_thresholds"] = {
-            mat_tag: (-np.inf, 0.),  # 只能两个值
+            mat_tag: (-np.inf, 0.0),  # 只能两个值
             # core_tag: (-eccu, 0.),
         }
         # 截面几何参数
@@ -461,6 +461,239 @@ class SectionHub:
         # 储存至管理器
         manager.set_params(
             category="uniaxialMaterial", tag=mat_tag, params=ENT_params
+        )  # 材料
+        manager.set_params(category="section", tag=sec_tag, params=sec_props)  # 截面
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 可视化 截面
+        if save_sec:
+            plt.close("all")
+            SEC.view(fill=True, show_legend=True)
+            plt.savefig(f"{save_sec}/{sec_name}_mash.png", dpi=300, bbox_inches="tight")
+            plt.close("all")
+
+        return SEC
+
+    "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+
+    @staticmethod
+    def brb_core(
+        manager: opsu.pre.ModelManager,
+        info: bool = True,
+        save_sec: Union[Path, str, Literal[""]] = "",
+    ) -> opst.pre.section.FiberSecMesh:
+        """
+        `BRB核心` 截面。
+
+        Args:
+            manager (opsu.pre.ModelManager): 模型管理器对象。
+            info (bool, optional): 是否显示截面信息。默认值为 True。
+            save_sec (Union[Path, str, Literal['']], optional): 是否保存截面可视化图片。默认值为 ''。
+
+        Returns:
+            opst.pre.section.FiberSecMesh: 包含截面网格模型的对象。
+        """
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 获取函数名
+        if sys._getframe() is not None:
+            sec_name = sys._getframe().f_code.co_name
+        else:
+            raise RuntimeError("Get Section Name Error")
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 内部材料标签
+        mat_tag = manager.next_tag(
+            category="uniaxialMaterial", label=f"{sec_name}"
+        )  # 标签标记为绘图所需
+        # 截面标签
+        sec_tag = manager.next_tag(category="section", label=sec_name)  # 定义截面编号
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 形状参数
+        W = 8 * UNIT.mm
+        H = 37.5 * UNIT.mm
+
+        # 轮廓线
+        sec_outlines = [(0, 0), (W, 0), (W, H), (0, H)]
+        # 生成几何形状
+        inner_geo = opst.pre.section.create_polygon_patch(sec_outlines)
+
+        # 截面网格
+        SEC = opst.pre.section.FiberSecMesh(sec_name="BRR Core Section")
+        SEC.add_patch_group({"inner": inner_geo})
+        # SEC.set_mesh_size({"inner": 0.03})
+        SEC.set_ops_mat_tag({"inner": mat_tag})  # 明确材料编号
+
+        # 生成网格
+        SEC.mesh()
+        SEC.centring()
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 获取截面信息
+        sec_props = SEC.get_sec_props(display_results=info)  # 截面信息
+
+        # 钢筋
+        fy, Es = 235 * UNIT.mpa, 161 * UNIT.gpa
+
+        # ops 材料参数
+        steel_params = dict(fy=fy, Es=Es, b=0.01, R0=18, cR1=0.925, cR2=0.15)
+
+        # 截面轴压力
+        # sec_props['P'] = 0.1 * (sec_props['A'] * abs(fy))
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 定义材料
+        ops.uniaxialMaterial("Steel02 ", mat_tag, *steel_params.values())
+
+        # 定义截面
+        SEC.to_opspy_cmds(secTag=sec_tag, GJ=1.0e6)
+
+        # "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # # 旋转截面
+        # SEC.rotate(0, remesh=True)
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
+        sec_props["stress_stages"] = {
+            mat_tag: (0.0),
+            # core_tag: (-fy / Es, -ecu, 0.75 * -eccu, -eccu),
+        }
+        # 截面 应变阈值 用于：opst.pre.section.FiberSecMesh.plot_response(thresholds=)
+        sec_props["stress_thresholds"] = {
+            mat_tag: (-np.inf, 0.0),  # 只能两个值
+            # core_tag: (-eccu, 0.),
+        }
+        # 截面几何参数
+        sec_props["Width"] = W
+        sec_props["Height"] = H
+        # 储存至管理器
+        manager.set_params(
+            category="uniaxialMaterial", tag=mat_tag, params=steel_params
+        )  # 材料
+        manager.set_params(category="section", tag=sec_tag, params=sec_props)  # 截面
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 可视化 截面
+        if save_sec:
+            plt.close("all")
+            SEC.view(fill=True, show_legend=True)
+            plt.savefig(f"{save_sec}/{sec_name}_mash.png", dpi=300, bbox_inches="tight")
+            plt.close("all")
+
+        return SEC
+
+    @staticmethod
+    def brb_link(
+        manager: opsu.pre.ModelManager,
+        info: bool = True,
+        save_sec: Union[Path, str, Literal[""]] = "",
+    ) -> opst.pre.section.FiberSecMesh:
+        """
+        `BRB连接` 截面。
+
+        Args:
+            manager (opsu.pre.ModelManager): 模型管理器对象。
+            info (bool, optional): 是否显示截面信息。默认值为 True。
+            save_sec (Union[Path, str, Literal['']], optional): 是否保存截面可视化图片。默认值为 ''。
+
+        Returns:
+            opst.pre.section.FiberSecMesh: 包含截面网格模型的对象。
+        """
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 获取函数名
+        if sys._getframe() is not None:
+            sec_name = sys._getframe().f_code.co_name
+        else:
+            raise RuntimeError("Get Section Name Error")
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 内部材料标签
+        mat_tag = manager.next_tag(
+            category="uniaxialMaterial", label=f"{sec_name}"
+        )  # 标签标记为绘图所需
+        # 截面标签
+        sec_tag = manager.next_tag(category="section", label=sec_name)  # 定义截面编号
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 形状参数
+        # W = 8 * UNIT.mm
+        # H = 37.5 * UNIT.mm
+        t = 8 * UNIT.mm
+        h = 100 * UNIT.mm
+        w = (h - t) / 2
+
+        # 轮廓线
+        # sec_outlines = [(0, 0), (W, 0), (W, H), (0, H)]
+        sec_outlines = [
+            (0, 0),
+            (t, 0),
+            (t, w),
+            (t + w, w),
+            (t + w, w + t),
+            (t, w + t),
+            (t, h),
+            (0, h),
+            (0, w + t),
+            (-w, w + t),
+            (-w, w),
+            (0, w)
+        ]
+        # 生成几何形状
+        inner_geo = opst.pre.section.create_polygon_patch(sec_outlines)
+
+        # 截面网格
+        SEC = opst.pre.section.FiberSecMesh(sec_name="BRR Link Section")
+        SEC.add_patch_group({"inner": inner_geo})
+        # SEC.set_mesh_size({"inner": 0.03})
+        SEC.set_ops_mat_tag({"inner": mat_tag})  # 明确材料编号
+
+        # 生成网格
+        SEC.mesh()
+        SEC.centring()
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 获取截面信息
+        sec_props = SEC.get_sec_props(display_results=info)  # 截面信息
+
+        # 钢筋
+        fy, Es = 227 * UNIT.mpa, 161 * UNIT.gpa
+
+        # ops 材料参数
+        steel_params = dict(fy=fy, Es=Es, b=0.01, R0=18, cR1=0.925, cR2=0.15)
+
+        # 截面轴压力
+        # sec_props['P'] = 0.1 * (sec_props['A'] * abs(fy))
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 定义材料
+        ops.uniaxialMaterial("Steel02 ", mat_tag, *steel_params.values())
+
+        # 定义截面
+        SEC.to_opspy_cmds(secTag=sec_tag, GJ=1.0e6)
+
+        # "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # # 旋转截面
+        # SEC.rotate(0, remesh=True)
+
+        "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
+        # 截面 组合材料 损伤判断依据： "ops_utilities.post.SecMatStates.get_combined_steps_mat()"
+        sec_props["stress_stages"] = {
+            mat_tag: (0.0),
+            # core_tag: (-fy / Es, -ecu, 0.75 * -eccu, -eccu),
+        }
+        # 截面 应变阈值 用于：opst.pre.section.FiberSecMesh.plot_response(thresholds=)
+        sec_props["stress_thresholds"] = {
+            mat_tag: (-np.inf, 0.0),  # 只能两个值
+            # core_tag: (-eccu, 0.),
+        }
+        # 截面几何参数
+        # sec_props["Width"] = W
+        # sec_props["Height"] = H
+        # 储存至管理器
+        manager.set_params(
+            category="uniaxialMaterial", tag=mat_tag, params=steel_params
         )  # 材料
         manager.set_params(category="section", tag=sec_tag, params=sec_props)  # 截面
 
