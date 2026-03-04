@@ -13,6 +13,7 @@
 
 import gif
 import numpy as np
+import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -41,6 +42,8 @@ MM = opsu.pre.ModelManager(include_start=True)
 OPSE = opsu.pre.OpenSeesEasy()
 
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+
+
 # 绘图方法
 class PlotyHub:
 
@@ -280,6 +283,8 @@ class PlotyHub:
 
 
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+
+
 # 数据后处理方法
 class PostProcess:
 
@@ -510,6 +515,13 @@ class PostProcess:
         adj_fig = PlotyHub.adjust_single(fig, ax, leg)
         # 保存图片
         adj_fig.savefig(self.data_path / f"figure_PT_resp.png", dpi=320)
+        # 保存数据
+        _data_PT_resp = pd.DataFrame({
+            "Disp(m)": self.d_ctrl.iloc[:, 0],
+            "PT_1(kN)": f_PT_1.iloc[:, 0],
+            "PT_2(kN)": f_PT_2.iloc[:, 0]
+        })
+        _data_PT_resp.to_excel(self.data_path / f"PT_resp.xlsx", index=True)
 
     def _sec_resp(
         self, pier: Literal[1, 2], SEC: opst.pre.section.FiberSecMesh, step: int

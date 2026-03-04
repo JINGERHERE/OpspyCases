@@ -24,19 +24,57 @@ def _():
     from typing import NamedTuple, List, Type, Union, Literal, Optional
     from collections import namedtuple
     from dataclasses import dataclass, fields, asdict
-    return np, pd
+    return (np,)
 
 
 @app.cell
-def _(np, pd):
-    disp = np.array([1, 2, 3, 4, 5, 6, 7, 8])
-    force = np.array([1, 1, 1, 1, 2, 3, 4, 5])
+def _(np):
+    def generate_path(peaks, repeat=1, mode='full', add_zero_start=True, add_zero_end=True):
+        path = []
+    
+        for p in peaks:
+            # 使用字典定义模式对应的“基本单元”
+            patterns = {
+                'full': [p, -p],
+                'half': [p, 0.0],
+                'push': [p]
+            }
+        
+            # 获取模式，若输入错误则抛出异常
+            unit = patterns.get(mode)
+            if unit is None:
+                raise ValueError(f"Invalid mode: {mode}. Choose from 'full', 'half', 'push'.")
+        
+            # 将单元重复 repeat 次并存入路径
+            path.extend(unit * repeat)
 
-    data = pd.DataFrame({
-        "Disp": disp,
-        "Force": force
-    })
-    data
+        res = np.array(path, dtype=float)
+
+        # 零点处理
+        if add_zero_start:
+            res = np.insert(res, 0, 0.0)
+        if add_zero_end and (len(res) == 0 or res[-1] != 0.0):
+            res = np.append(res, 0.0)
+        
+        return res
+    return (generate_path,)
+
+
+@app.cell
+def _(generate_path, np):
+    disp_path = np.array([1, 2, 3, 4, 5])
+    tt = generate_path(
+        disp_path, repeat=2,
+        mode='half',
+        add_zero_start=False, add_zero_end=False
+    )
+    tuple(tt)
+    return
+
+
+@app.cell
+def _(np):
+    np.arange(0.003, 0.015 + 0.003, 0.003)
     return
 
 

@@ -124,7 +124,7 @@ class RockPierModel:
             3 * 140 * UNIT.mm**2,
             # 3 * (np.pi * (15.2 * UNIT.mm / 2) ** 2)
         )
-        PT_f = 0.40 * PT_fy  # 张拉控制力
+        PT_f = 0.4 * PT_fy  # 张拉控制力
 
         # 模型收敛刚度拟合
         # Kfit = 4.0e3
@@ -991,7 +991,12 @@ class RockPierModel:
                 *(core_i_tag, core_j_tag),
                 *(transf_brb, brb_link_integ),
             )
-            
+            # core_tag = OPSE.element(
+            #     "TrussSection",
+            #     *(core_i_tag, core_j_tag),
+            #     sec_tag_brb_core,
+            # )
+
             return core_tag
 
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
@@ -1006,7 +1011,7 @@ class RockPierModel:
             node_j=self.aid_node["pier_2"]["edge_base"],
         )
         # print(f'底部: {core_tag_base}')
-        
+
         "# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----"
         # 刷新 将缓存同步至管理器
         OPSE.refresh()

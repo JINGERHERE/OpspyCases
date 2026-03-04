@@ -16,7 +16,7 @@ import pandas as pd
 import opstool as opst
 import openseespy.opensees as ops
 import matplotlib.pyplot as plt
-import rich
+from typing import Optional, Union, Tuple, List, Literal
 from pathlib import Path
 
 import ops_utilities as opsu
@@ -49,7 +49,54 @@ test_data = pd.read_excel(
 test_data["m"] = pd.to_numeric(test_data["m"], errors="coerce")
 test_data["kN"] = pd.to_numeric(test_data["kN"], errors="coerce")
 
+
 "===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ====="
+
+
+def gen_path(
+    peaks: Union[List, Tuple, np.ndarray],
+    repeat: int = 1,
+    mode: Literal["full", "half", "push"] = "full",
+    zero_start: bool = True,
+    zero_end: bool = True,
+) -> np.ndarray:
+    """
+    生成路径
+
+    Args:
+        peaks (Union[List, Tuple]): 峰值列表
+        repeat (int, optional): 重复次数. Defaults to 1.
+        mode (Literal["full", "half", "push"], optional): 模式. Defaults to "full".
+        zero_start (bool, optional): 是否在开头添加零. Defaults to True.
+        zero_end (bool, optional): 是否在结尾添加零. Defaults to True.
+
+    Returns:
+        np.ndarray: 路径数组
+    """
+
+    path = []
+    for p in peaks:
+        # 定义模式
+        patterns = {"full": [p, -p], "half": [p, 0.0], "push": [p]}
+        # 获取模式，若输入错误则抛出异常
+        unit = patterns.get(mode)
+        if unit is None:
+            raise ValueError(
+                f"Invalid mode: {mode}. Choose from 'full', 'half', 'push'."
+            )
+
+        # 将单元重复 repeat 次并存入路径
+        path.extend(unit * repeat)
+
+    res = np.array(path, dtype=float)
+
+    # 零点处理
+    if zero_start:
+        res = np.insert(res, 0, 0.0)
+    if zero_end and (len(res) == 0 or res[-1] != 0.0):
+        res = np.append(res, 0.0)
+
+    return res
 
 
 class CaseHub:
@@ -110,7 +157,7 @@ class CaseHub:
         # 创建数据库
         self.ODB = opst.post.CreateODB(
             odb_tag=self.case_name,
-            model_update = True,
+            model_update=True,
             elastic_frame_sec_points=9,
             fiber_ele_tags="ALL",
             zlib=True,
@@ -205,38 +252,6 @@ class CaseHub:
 
         return disp, force
 
-    # def cycle(self):
-    #     """
-    #     Cycle 分析方法
-
-    #     Returns:
-    #         Tuple[np.ndarray, np.ndarray]: 位移路径, 力路径
-    #             - disp: 位移路径
-    #             - force: 力路径
-    #     """
-
-    #     # 重力分析
-    #     self.gravity(save_odb=False)
-
-    #     # 位移路径
-    #     incr = 0.002 * UNIT.m
-    #     # 全程
-    #     disp_1 = np.arange(0.003, 0.015 + 0.003, 0.003)  # 第一阶段 控制位移幅值
-    #     disp_2 = np.arange(0.016, 0.12 + 0.0075, 0.0075)  # 第二节段 控制唯一幅值
-    #     disp_step = np.repeat(np.concatenate((disp_1, disp_2)), 3)  # 合并后 重复三次
-    #     disp_pairs = np.stack((disp_step, -disp_step), axis=1).flatten()  # 正负成对
-    #     disp_path = np.concatenate(([0.0], disp_pairs, [0.0])) * UNIT.m  # 添加首尾
-    #     # 最大圈
-    #     # disp_path = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
-
-    #     # 静力分析
-    #     disp, force = self._static(targets=disp_path, incr=incr)
-
-    #     # 保存数据库
-    #     self.ODB.save_response()
-
-    #     return disp, force
-
     def cycle(self):
         """
         Cycle 分析方法
@@ -250,43 +265,101 @@ class CaseHub:
         # 重力分析
         self.gravity(save_odb=False)
 
-        # 位移路径
+        # 位移路径步长
         incr = 0.002 * UNIT.m
+
+        # 循环重复次数
+        repeat = 3
 
         if self.brb:
             # 第一段
-            disp_path_1 = np.array([0.0, 0.0375, -0.0375, 0.0]) * UNIT.m
+            disp_path_1 = (
+                gen_path(
+                    peaks=(
+                        0.0030,
+                        0.0060,
+                        0.0090,
+                        0.0120,
+                        0.0150,
+                        0.0225,
+                        0.0300,
+                        0.0375,
+                    ),
+                    repeat=repeat,
+                )
+                * UNIT.m
+            )
             disp_1, force_1 = self._static(targets=disp_path_1, incr=incr)
 
             # 第二段
             # ops.remove("ele", 53)
             ops.remove("ele", self.MM.get_tag("element", label="brb_top")[0])  # 53
             # ops.remove("ele", self.MM.get_tag("element", label="brb_base")[0])  # 56
-            disp_path_2 = np.array([0.0, 0.045, -0.045, 0.0825, -0.0825, 0.0]) * UNIT.m
+            disp_path_2 = (
+                gen_path(
+                    peaks=(
+                        0.0450,
+                        0.0525,
+                        0.0600,
+                        0.0675,
+                        0.0750,
+                        0.0825,
+                        0.0900,
+                        # 0.0975,
+                        # 0.1050,
+                        # 0.1125,
+                        # 0.1200,
+                    ),
+                    repeat=repeat,
+                )
+                * UNIT.m
+            )
             disp_2, force_2 = self._static(targets=disp_path_2, incr=incr)
+
+            # 合并数据
+            # disp = np.concatenate((disp_1, disp_2))
+            # force = np.concatenate((force_1, force_2 + force_1[-1]))
 
             # 第三段
             # ops.remove("ele", 56)
             # ops.remove("ele", self.MM.get_tag("element", label="brb_top")[0])  # 53
             # ops.remove("ele", self.MM.get_tag("element", label="brb_base")[0])  # 56
-            disp_path_3 = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
+            disp_path_3 = (
+                gen_path(
+                    peaks=(
+                        0.0975,
+                        0.1050,
+                        0.1125,
+                        0.1200,
+                    ),
+                    repeat=repeat,
+                )
+                * UNIT.m
+            )
             disp_3, force_3 = self._static(targets=disp_path_3, incr=incr)
 
             # 合并数据
             disp = np.concatenate((disp_1, disp_2, disp_3))
-            force = np.concatenate((force_1, force_2, force_3))
+            force = np.concatenate((force_1, force_2 + force_1[-1], force_3))
 
         else:
             # 全程
-            disp_1 = np.arange(0.003, 0.015 + 0.003, 0.003)  # 第一阶段 控制位移幅值
-            disp_2 = np.arange(0.016, 0.12 + 0.0075, 0.0075)  # 第二节段 控制唯一幅值
-            disp_step = np.repeat(np.concatenate((disp_1, disp_2)), 3)  # 合并后 重复三次
-            disp_pairs = np.stack((disp_step, -disp_step), axis=1).flatten()  # 正负成对
-            disp_path = np.concatenate(([0.0], disp_pairs, [0.0])) * UNIT.m  # 添加首尾
+            disp_path = (
+                gen_path(
+                    peaks=np.concatenate(
+                        (
+                            np.arange(0.003, 0.015 + 0.003, 0.003),
+                            np.arange(0.015, 0.12 + 0.0075, 0.0075),
+                        )
+                    ),
+                    repeat=repeat,
+                )
+                * UNIT.m
+            )
 
             # 最大圈
-            disp_path = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
-            
+            # disp_path = np.array([0.0, 0.12, -0.12, 0.0]) * UNIT.m
+
             # 静力分析
             disp, force = self._static(targets=disp_path, incr=incr)
 

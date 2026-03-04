@@ -147,5 +147,6 @@ if __name__ == "__main__":
 
     # AnalysisCase.static(cycle=False, BRB=False, fit=1.5e3) # old
 
-    # AnalysisCase.static(cycle=True, BRB=False, fit=4.0e3)
-    AnalysisCase.static(cycle=True, BRB=True, fit=8.5e3)
+    AnalysisCase.static(cycle=False, BRB=False, fit=4.0e3) # push
+    AnalysisCase.static(cycle=True, BRB=False, fit=4.0e3) # cycle
+    AnalysisCase.static(cycle=True, BRB=True, fit=8.5e3) # cycle BRB
