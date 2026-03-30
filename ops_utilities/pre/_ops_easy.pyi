@@ -326,12 +326,23 @@ class OpenSeesEasy:
 
         ...
 
-    def plot_sec(self, sec_tag: int = 1) -> Tuple[Figure, Axes]:
+    def plot_sec(
+        self,
+        sec_tag: int = 1,
+        title: str = "My Section",
+        label_size: int = 15,
+        tick_size: int = 12,
+        title_size: int = 18
+    ) -> Tuple[Figure, Axes]:
         """
         绘制 纤维截面 图。
 
         Args:
             sec_tag (int, optional): 截面标签。默认值为 1。
+            title (str, optional): 图标题。默认值为 "My Section"。
+            label_size (int, optional): 标签字体大小。默认值为 15。
+            tick_size (int, optional): 刻度字体大小。默认值为 12。
+            title_size (int, optional): 标题字体大小。默认值为 18。
 
         Returns:
             Tuple(Figure, Axes):
