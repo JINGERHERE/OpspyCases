@@ -276,6 +276,7 @@ class CaseHub:
             disp_path_1 = (
                 gen_path(
                     peaks=(
+                        0.0010,
                         0.0030,
                         0.0060,
                         0.0090,
